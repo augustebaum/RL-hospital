@@ -11,6 +11,8 @@ Each individual doctor has an associated queue, and there can be any number of d
 When patients arrive at the hospital, they shall be treated according to their needs.
 Specifically, a patient with "Critical" needs **has to be seen** by a "Critical" doctor, yet a patient with "Non-urgent" needs **can be seen by any kind of doctor**.
 
+The hospital doesn't provide appointment services (might be a walk-in centre).
+
 ## Modelling
 
 This is a discrete-time problem. At each time step:
