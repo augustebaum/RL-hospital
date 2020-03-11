@@ -25,27 +25,25 @@ state = np.array([np.zeros(N[n]) for n in range(len(N))])
 def pi(s, a):
     # If no arrival then do nothing
     if s[0] == 0: return None
-    else:
         
 
 pi = [ 1/len(N) for i in range(len(N)) ]
-print(pi)
+# print(pi)
 
 rng = np.random.default_rng()
 
-for k in range(int(hours*60/mins)):
-
-    # rng.choice(1, N(n), p=[ N[n]*L[n]*mins/60 for n in range(N(n)) ])
-
-    arrival = np.random.bernoulli(l*mins/60)
-    # Which doctor type do they want?
-    doc = np.random.uniform(0,len(N))
-
-    for n in N:
-        for i in range(n):
-            done = np.random.bernoulli(N(n)*L(n)*mins/60)
-
-    decision = np.
+# for k in range(int(hours*60/mins)):
+#
+#    # rng.choice(1, N(n), p=[ N[n]*L[n]*mins/60 for n in range(N(n)) ])
+#
+#    # arrival = np.random.bernoulli(l*mins/60)
+#    # Which doctor type do they want?
+#    doc = np.random.uniform(0,len(N))
+#
+#    for n in N:
+#        for i in range(n):
+#            # done = np.random.bernoulli(N(n)*L(n)*mins/60)
+            
 
 # [("GP", [15, 17]), ("nurse", [7, 8, 7]), ("eye doctor", [20]), ("physio", [30])]
 
@@ -54,31 +52,54 @@ for k in range(int(hours*60/mins)):
 
 
 class Hospital(object):
-    # Defines a hospital with doctors of different types
+    """Defines a hospital with doctors of different types"""
 
     def __init__(self,
+            occupancy,
             doctor_types,
-            num_doctor,
-            rate_doctor,
+            num_doctors,
+            rate_doctors,
             rate_arrivals):
-    """
-    Constructs a hospital
+        """
+        Constructs a hospital
 
-    parameters
-    ----------
-    doctor_types  - List of strings or ints (doctor specialties)
-    num_doctor    - List of ints (number of doctors of each type)
-    rate_doctor   - List of floats (for each type, how long it takes on average to treat a patient)
-    rate_arrivals - Float (how many patients arrive per hour)
-    """
-    self.types = doctor_types
- 
-    self.state = [(0, 0)] + [
+        parameters
+        ----------
+        occupancy     - Int (maximum capacity of hospital)
+        doctor_types  - List of strings or ints (doctor specialties)
+            # ints could represent the priority of each doctor
+            # e.g. doctor type 0 can treat level 0 and below, type 1 can treat level 1 and below, etc...
+        num_doctors   - List of ints (number of doctors of each type)
+        rate_doctors  - List of floats (for each type, how long it takes on average to treat a patient)
+            # Could make it more complicated by having a rate per doctor rather than per type
+        rate_arrivals - List of floats (how many patients of each type (0, 1, ...) arrive per hour)
+        """
+        self.occupancy = occupancy
 
-    self.rates = [rate_arrivals] + rate_doctor
+        self.types     = doctor_types
+     
+        # Arrival and then one empty queue per doctor
+        self.state     = [(0, 0)] + [ [] for _ in range(sum(num_doctors)) ]
 
-    # Who an incoming patient wants to see
-    self.need  = ["any"] + doctor_types
-    # self.policy = 
+        self.action    = list(range(sum(num_doctors)))
+
+        self.rates     = [rate_arrivals] + rate_doctors
+
+
+    def time_advance(self, time_period):
+        """
+        Update the state (after a certain time period)
+
+        Inputs:
+        ----------
+        """
+        
+def nest_increment(l):
+    """ Add 1 to all elements in a nested list """
+    # Do we need to make it usable with numpy arrays?
+    if type(l) is not list:
+        return l+1
+    else:
+        return list(map(nest_increment, l))
     
 
