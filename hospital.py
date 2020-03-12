@@ -57,9 +57,9 @@ class Hospital(object):
 
         #    # The hospital becomes overcrowded
         #    if sum(map(lambda x: len(x.queue), s)) == self.occupancy:
-        #        # return -1000
+        #        return -1000
         #        # Can it be infinite?
-        #        return -np.inf
+        #        # return -np.inf
 
         #    need = s[0][1]
         #    result = 0
@@ -82,24 +82,34 @@ class Hospital(object):
 
         Inputs:
         ----------
+        policy - Function
         """
-        # NEED TO FIGURE OUT THE ORDER OF THE ACTIONS
+        ### NEED TO FIGURE OUT THE ORDER OF THE ACTIONS
         # Look at which doctors were done
-        # self.update_queues() 
         for doctor in self.state:
             doctor.update()
 
-        # new_patient = np.random.binomial(1, p)
-        # if new_patient:
-        # First, look at if there is a new patient
+        # Look at if there is a new patient
         if new_patient := np.random.binomial(1, rate_arrivals):
-            # Check this
-            patient_need = np.random.uniform(0, 3)
-            self.state[0] = (new_patient, patient_need)
+            # Check the rate stuff
+            self.state[0] = Patient(np.random.uniform(0, 3))
             print("there is a new patient with priority", patient_need)
+        else:
+            self.state[0] = None
 
         action = policy(state, self.actions)
         print("Take action:", action)
+
+    # Should this be a class method?
+    def policy_random(state, actions):
+        """
+        The random policy
+        """
+        if state[0] is None:
+            return None
+        else:
+            pass
+            # Return one of the possible actions with probability 1/number of possible actions
 
 
 class Doctor(object):
@@ -122,25 +132,23 @@ class Doctor(object):
 
         self.queue = []
 
-        self.busy = False
+        # Patient currently being treated, and None if the doctor is free
+        self.busy = None
 
 
     def update(self):
         """Update the state of the doctor"""
         # Could probably be shortened
-        for i in range(len(a)): a[i] += 1
+        for i in range(len(self.queue)): self.queue[i].wait += 1
 
         if self.busy:
             # Will have to translate rate into probability
-            is_done = np.random.binomial(1, rate)
 
-        if is_done:
-            if self.queue:
-                self.queue.pop(0)
-                self.busy = True
-            else:
-                self.busy = False
-
+            if is_done := np.random.binomial(1, self.rate):
+                if self.queue:
+                    self.busy = self.queue.pop(0)
+                else:
+                    self.busy = None
 
     # Is it worth transforming that into a method that only works on Patient objects?
     def can_treat(self, severity):
@@ -162,4 +170,4 @@ class Patient(object):
         """
         self.need = need
 
-    self.wait = 0
+        self.wait = 0
