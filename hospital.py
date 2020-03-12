@@ -5,9 +5,6 @@ class Hospital(object):
 
     def __init__(self,
             occupancy,
-            # doctor_types,
-            # num_doctors,
-            # rate_doctors,
             doctors,
             rate_arrivals):
         """
@@ -17,30 +14,15 @@ class Hospital(object):
         ----------
         occupancy     - Int (maximum capacity of hospital)
         doctors       - List of Doctors
-        doctor_types  - List of strings or ints (doctor specialties)
-            # ints could represent the priority of each doctor
-            # e.g. doctor type 0 can treat level 0 and below, type 1 can treat level 1 and below, etc...
-        num_doctors   - List of ints (number of doctors of each type)
-        rate_doctors  - List of floats (for each type, how long it takes on average to treat a patient)
-            # Could make it more complicated by having a rate per doctor rather than per type
         rate_arrivals - List of floats (how many patients of each type (0, 1, ...) arrive per hour)
         """
         self.occupancy = occupancy
 
-        # self.types     = doctor_types
-     
-        # Redefine in terms of Doctor instances
-        # Arrival and then one empty queue per doctor
-        # self.state     = [(0, 0)] + [ [] for _ in range(sum(num_doctors)) ]
-        # self.state     = [(0, 0)] + doctors
         self.state     = doctors
 
-        # self.actions   = list(range(len(doctors)))
-        # self.actions   = [None] + list(range(1, len(doctors)))
         self.actions   = [None] + list(range(len(doctors)))
 
         self.rate_arrivals = rate_arrivals
-        # self.rates     = [rate_arrivals] + rate_doctors
 
         # How to define the transition function?
         # The state space is so huge
@@ -132,7 +114,8 @@ class Doctor(object):
 
         self.queue = []
 
-        # Patient currently being treated, and None if the doctor is free
+        # Patient currently being treated;
+        # None if the doctor is free
         self.busy = None
 
 
@@ -152,7 +135,7 @@ class Doctor(object):
 
     # Is it worth transforming that into a method that only works on Patient objects?
     def can_treat(self, severity):
-        """ Return whether the doctor can treat that type of patient """
+        """Return whether the doctor can treat that type of patient"""
         return severity <= self.type
 
 
@@ -166,8 +149,7 @@ class Patient(object):
 
         parameters
         ----------
-        need - Int (how severe this patient's ailment is; higher is more urgent)
+        need - Int (severity of patient's ailment; higher is more urgent)
         """
         self.need = need
-
         self.wait = 0
