@@ -75,49 +75,68 @@ class Hospital(object):
         policy - Function
         time_period - Float (how long to go forward)
         """
-        print("Advancing...")
-        ### NEED TO FIGURE OUT THE ORDER OF THE ACTIONS
+        # print("In time_advance function")
+        s = self.state
+
+        action = policy(s, self.actions)
+        # print("Take action:", action+1 if action is not None else None)
+        if action is not None:
+            s[action+1].queue.append(s[0])
+            # print("Give to doctor", action+1)
+        # else:
+            # print("No patient -> Do nothing")
+
         # Look at which doctors finished during the time_period and update them
-        for i, doctor in enumerate(self.state[1:]):
+        for i, doctor in enumerate(s[1:]):
             doctor.update(time_period)
-            print("Doctor no.",i+1,"updated")
 
         # Look at if there is a new patient
         p = expon.cdf(time_period, scale = self.rate_arrivals)
-        if new_patient := binom.rvs(1, p):
-        # if new_patient := binom.rvs(1, expon.cdf(time_period, scale = self.rate_arrivals)):
-            self.newPatient = Patient(need = random.choice(self.actions[1:]))
-            print("there is a new patient with priority", self.newPatient.need)
+        if binom.rvs(1, p):
+            # Severity sampled from uniform
+            s[0] = Patient(need = random.choice(self.actions[1:]))
         else:
-            self.newPatient = None
+            s[0] = None
 
-        action = policy(self.state, self.actions)
-        print("Take action:", action)
+        # Now do the rewards thing?
 
     # Should this be a class method?
     def policy_random(self, state, actions):
-        """
-        The random policy
-        """
-        if self.newPatient is None:
-            return None
-
-        # Return one of the possible actions with probability 1/(number of possible actions)
-        res = random.choice(actions[1:])
-        self.doctors[res].queue.append(self.newPatient)
-        return res
+        """The random policy"""
+        if self.state[0]:
+            # Return one of the possible actions with probability 1/(number of possible actions)
+            return random.choice(actions[1:])
+        return None
 
     def pretty_print(self):
         """Prints out the hospital state"""
         s = self.state
 
-        new = s[0]
-        if new:
-            new = s[0].need
-        print("New patient:", new)
+        # for i in range(1, len(s)):
+            # print("Doctor",i,":",s[i].busy.need if s[i].busy else None, "\t", [(p.need,p.wait) for p in s[i].queue])
 
-        for i in range(1, len(s)):
-            print("Doctor",i,":",s[i].busy.need if s[i].busy else None, "\t", [p.need for p in s[i].queue])
+        # new = [ (d.queue.need, d.queue.wait) for d in s[1:] ]
+        # new = [ list(map(lambda x: (x.need, x.wait), d.queue))  for d in s[1:] ]
+        new = [ list(map(lambda x: x.wait, d.queue))  for d in s[1:] ]
+        lengths = list(map(len, new))
+
+        longest_length = max(lengths)
+
+        for i in range(len(lengths)):
+            for _ in range(longest_length - lengths[i]):
+                new[i].append(" ") 
+        
+        new = list(zip(*new))
+        # print(new)
+
+        format_row = "{:^10}" * len(lengths)
+        print(format_row.format(*["Doctor "+str(i) for i in range(1,len(s)+1)]))
+        print(format_row.format(*[d.busy.need if d.busy else "None" for d in s[1:]]))
+        print(("{:*^"+str(10*len(lengths))+"}").format(""))
+        for row in new:
+            print(format_row.format(*row))
+
+        print("New patient:", s[0].need if s[0] else None,"\n")
 
 class Doctor(object):
     """Defines a doctor"""
@@ -146,20 +165,22 @@ class Doctor(object):
 
     def update(self, time_period):
         """Update the state of the doctor"""
-        # Could probably be shortened
-        # for i in range(len(self.queue)): self.queue[i].wait += 1
         for p in self.queue: p.wait += 1
         # for p in self.queue: p.wait += time_period
 
-### BUG: At the beginning doctors never become busy
-        if not self.busy:
-            # Will have to translate rate into probability
-            
-            if is_done := binom.rvs(1, expon.cdf(time_period, scale = self.rate)):
-                if self.queue:
-                    self.busy = self.queue.pop(0)
-                else:
-                    self.busy = None
+        # If busy and just finished
+        if self.busy:
+            if binom.rvs(1, expon.cdf(time_period, scale = self.rate)):
+                self.busy = None
+                # print("Done!")
+            else:
+                return
+
+        # If there is no-one waiting
+        if self.queue:
+            self.busy = self.queue.pop(0)
+
+
 
     # Is it worth transforming that into a method that only works on Patient objects?
     def can_treat(self, severity):
