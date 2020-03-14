@@ -22,9 +22,6 @@ class Hospital(object):
         """
         self.occupancy = occupancy
 
-        self.newPatient = None
-        self.doctors = doctors
-
         self.state     = [self.newPatient] + self.doctors
 
         self.actions   = [None] + list(range(len(doctors)))
@@ -75,16 +72,11 @@ class Hospital(object):
         policy - Function
         time_period - Float (how long to go forward)
         """
-        # print("In time_advance function")
         s = self.state
 
         action = policy(s, self.actions)
-        # print("Take action:", action+1 if action is not None else None)
         if action is not None:
             s[action+1].queue.append(s[0])
-            # print("Give to doctor", action+1)
-        # else:
-            # print("No patient -> Do nothing")
 
         # Look at which doctors finished during the time_period and update them
         for i, doctor in enumerate(s[1:]):
@@ -100,7 +92,6 @@ class Hospital(object):
 
         # Now do the rewards thing?
 
-    # Should this be a class method?
     def policy_random(self, state, actions):
         """The random policy"""
         if self.state[0]:
@@ -112,12 +103,8 @@ class Hospital(object):
         """Prints out the hospital state"""
         s = self.state
 
-        # for i in range(1, len(s)):
-            # print("Doctor",i,":",s[i].busy.need if s[i].busy else None, "\t", [(p.need,p.wait) for p in s[i].queue])
-
-        # new = [ (d.queue.need, d.queue.wait) for d in s[1:] ]
-        # new = [ list(map(lambda x: (x.need, x.wait), d.queue))  for d in s[1:] ]
-        new = [ list(map(lambda x: x.wait, d.queue))  for d in s[1:] ]
+        # Make the state into a list of lists of waiting times
+        new = [ list(map(lambda x: x.wait, d.queue)) for d in s[1:] ]
         lengths = list(map(len, new))
 
         longest_length = max(lengths)
@@ -126,11 +113,12 @@ class Hospital(object):
             for _ in range(longest_length - lengths[i]):
                 new[i].append(" ") 
         
+        # Transpose, kind of
         new = list(zip(*new))
-        # print(new)
 
         format_row = "{:^10}" * len(lengths)
         print(format_row.format(*["Doctor "+str(i) for i in range(1,len(s)+1)]))
+        # How to print a tuple?
         print(format_row.format(*[d.busy.need if d.busy else "None" for d in s[1:]]))
         print(("{:*^"+str(10*len(lengths))+"}").format(""))
         for row in new:
@@ -153,38 +141,31 @@ class Doctor(object):
         rate_doctor - Float (how long it takes on average to treat a patient)
         """
         self.type = doctor_type
-
         self.rate = rate_doctor
-
         self.queue = []
-
         # Patient currently being treated;
-        # None if the doctor is free
+        # None if doctor is free
         self.busy = None
-
+ 
 
     def update(self, time_period):
         """Update the state of the doctor"""
         for p in self.queue: p.wait += 1
         # for p in self.queue: p.wait += time_period
 
-        # If busy and just finished
         if self.busy:
-            if binom.rvs(1, expon.cdf(time_period, scale = self.rate)):
+            if binom.rvs(1, expon.cdf(time_period, scale = self.rate)): # If done
                 self.busy = None
                 # print("Done!")
             else:
-                return
+                return # Don't change anything
 
-        # If there is no-one waiting
-        if self.queue:
+        if self.queue: # If queue not empty
             self.busy = self.queue.pop(0)
-
-
 
     # Is it worth transforming that into a method that only works on Patient objects?
     def can_treat(self, severity):
-        """Return whether the doctor can treat that type of patient"""
+        """Return whether the doctor can treat that type of ailment"""
         return severity <= self.type
 
 
