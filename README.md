@@ -6,7 +6,9 @@ Simulate a hospital and explore different reinforcement learning algorithms to o
 The hospital has different doctors who specialize in different things.
 
 For example, doctors could be of 3 different types: "Non-urgent", "Urgent" and "Critical".
-Each individual doctor has an associated queue, and there can be any number of doctors for each type.
+
+[Each individual doctor has an associated queue, and there can be any number of doctors for each type.]::
+Each *type of doctor* has an associated queue, and there can be any number of doctors for each type.
 
 When patients arrive at the hospital, they shall be treated according to their needs.
 Specifically, a patient with "Critical" needs **has to be seen** by a "Critical" doctor, yet a patient with "Non-urgent" needs **can be seen by any kind of doctor**.
@@ -27,3 +29,9 @@ In each queue, patients are represented by an integer which corresponds to the n
 
 The total number of patients in the hospital at any given time is bounded.
 When the hospital is full, any arriving patient is sent away (with a penalty for the agent).
+
+## TODO
+- One patient arrives at every timestep;
+- There is one queue per type of doctor;
+- The reward system is embedded in the process itself (the `time-advance` function);
+- A new, simpler representation should be implemented in order to evaluate and update the policy.

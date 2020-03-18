@@ -1,5 +1,3 @@
-# import numpy as np
-# import scipy.stats as sct
 import random
 from scipy.stats import binom, expon
 
@@ -22,8 +20,9 @@ class Hospital(object):
         """
         self.occupancy = occupancy
 
-        self.state     = [self.newPatient] + self.doctors
+        self.state     = [None] + doctors
 
+        # Is it worth forcing a patient to show up at every time step?
         self.actions   = [None] + list(range(len(doctors)))
 
         # Make a dict out of it?
@@ -38,29 +37,29 @@ class Hospital(object):
         #        need = self.state[0][1]
         #        
         ## Not sure if I'm doing the right thing here
-        #def r(self, s, a, s_):
-        #    if s[0][0] == 0:
-        #        return 0
+        def r(self, s, a, s_):
+            if s[0][0] == 0:
+                return 0
 
-        #    # The hospital becomes overcrowded
-        #    if sum(map(lambda x: len(x.queue), s)) == self.occupancy:
-        #        return -1000
-        #        # Can it be infinite?
-        #        # return -np.inf
+            # The hospital becomes overcrowded
+            if sum(map(lambda x: len(x.queue), s)) == self.occupancy:
+                return -1000
+                # Can it be infinite?
+                # return -np.inf
 
-        #    need = s[0][1]
-        #    result = 0
+            need = s[0][1]
+            result = 0
 
-        #    # Try to allocate a patient to a doctor who cannot treat them
-        #    # This could also be implemented directly, for simplicity
-        #    if not s[a].can_treat(need):
-        #        result += -1000
-        #        # return -np.inf
+            # Try to allocate a patient to a doctor who cannot treat them
+            # This could also be implemented directly, for simplicity
+            if not s[a].can_treat(need):
+                result += -1000
+                # return -np.inf
 
-        #    # Add up all the waiting times
-        #    result += -sum(map(lambda x: sum(x.queue), s))
-        #    
-        #    return result
+            # Add up all the waiting times
+            result += -sum(map(lambda x: sum(x.queue), s))
+            
+            return result
 
     # Not sure if the time period thing is a good idea
     def time_advance(self, policy, time_period):
@@ -77,6 +76,9 @@ class Hospital(object):
         action = policy(s, self.actions)
         if action is not None:
             s[action+1].queue.append(s[0])
+            # print("Action:", action+1)
+        # else:
+            # print("Action:", None)
 
         # Look at which doctors finished during the time_period and update them
         for i, doctor in enumerate(s[1:]):

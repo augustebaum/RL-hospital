@@ -1,5 +1,4 @@
 from hospital import *
-# np.random.seed(1234)
 
 # Two doctors
 # One of level 0 that treats people in 3 min on average
