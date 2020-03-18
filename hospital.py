@@ -8,7 +8,7 @@ class Hospital(object):
     def __init__(self,
             occupancy,
             doctors,
-            rate_arrivals):
+            needs):
         """
         Constructs a hospital
 
@@ -16,53 +16,46 @@ class Hospital(object):
         ----------
         occupancy     - Int (maximum capacity of hospital)
         doctors       - List of Doctors
-        rate_arrivals - List of floats (how long it takes for patients of each type (0, 1, ...) to arrive, in minutes)
+        needs         - List of floats (probabilities of patients of each type (0, 1, ...) to arrive -- while be normalised)
         """
         self.occupancy = occupancy
 
         self.state     = [None] + doctors
 
-        # Is it worth forcing a patient to show up at every time step?
-        self.actions   = [None] + list(range(len(doctors)))
+        self.actions   = sorted([*{*[d.type for d in doctors]}])
 
-        # Make a dict out of it?
-        self.rate_arrivals = rate_arrivals
+        # Normalised needs; doctor types start at 0
+        if len(needs) != len(self.actions):
+            raise ValueError("There aren't the same number of doctor types and patient needs!\n"+"Number of types: "+str(len(self.actions))+"\n"+"Number of needs: "+str(len(needs)))
 
-        # How to define the transition function?
-        # The state space is so huge
-        #def t(self, s, a, s_):
-        #    if self.state[0][0] == 0:
-        #        return None
-        #    else:
-        #        need = self.state[0][1]
-        #        
-        ## Not sure if I'm doing the right thing here
-        def r(self, s, a, s_):
-            if s[0][0] == 0:
-                return 0
+        self.needs     = needs
+        
 
-            # The hospital becomes overcrowded
-            if sum(map(lambda x: len(x.queue), s)) == self.occupancy:
-                return -1000
-                # Can it be infinite?
-                # return -np.inf
+        #def r(self, s, a, s_):
+        #    if s[0][0] == 0:
+        #        return 0
 
-            need = s[0][1]
-            result = 0
+        #    # The hospital becomes overcrowded
+        #    if sum(map(lambda x: len(x.queue), s)) == self.occupancy:
+        #        return -1000
+        #        # Can it be infinite?
+        #        # return -np.inf
 
-            # Try to allocate a patient to a doctor who cannot treat them
-            # This could also be implemented directly, for simplicity
-            if not s[a].can_treat(need):
-                result += -1000
-                # return -np.inf
+        #    need = s[0][1]
+        #    result = 0
 
-            # Add up all the waiting times
-            result += -sum(map(lambda x: sum(x.queue), s))
-            
-            return result
+        #    # Try to allocate a patient to a doctor who cannot treat them
+        #    # This could also be implemented directly, for simplicity
+        #    if not s[a].can_treat(need):
+        #        result += -1000
+        #        # return -np.inf
 
-    # Not sure if the time period thing is a good idea
-    def time_advance(self, policy, time_period):
+        #    # Add up all the waiting times
+        #    result += -sum(map(lambda x: sum(x.queue), s))
+        #    
+        #    return result
+
+    def time_advance(self, policy):
         """
         Update the state (after a certain time period)
 
@@ -74,32 +67,23 @@ class Hospital(object):
         s = self.state
 
         action = policy(s, self.actions)
-        if action is not None:
-            s[action+1].queue.append(s[0])
-            # print("Action:", action+1)
-        # else:
-            # print("Action:", None)
+        # NEED TO CHANGE THIS IF THERE IS ONE QUEUE PER TYPE
+        s[action + 1].queue.append(s[0])
 
         # Look at which doctors finished during the time_period and update them
         for i, doctor in enumerate(s[1:]):
-            doctor.update(time_period)
-
-        # Look at if there is a new patient
-        p = expon.cdf(time_period, scale = self.rate_arrivals)
-        if binom.rvs(1, p):
-            # Severity sampled from uniform
-            s[0] = Patient(need = random.choice(self.actions[1:]))
-        else:
-            s[0] = None
+            doctor.update()
 
         # Now do the rewards thing?
 
-    def policy_random(self, state, actions):
+        # Need to get need according to rates given in init
+        s[0] = Patient(need = random.choices(self.actions, weights = self.needs))
+
+
+    def policy_random(self):
         """The random policy"""
-        if self.state[0]:
-            # Return one of the possible actions with probability 1/(number of possible actions)
-            return random.choice(actions[1:])
-        return None
+        # Return one of the possible actions with probability 1/(number of possible actions)
+        return random.choice(self.actions)
 
     def pretty_print(self):
         """Prints out the hospital state"""
@@ -140,7 +124,7 @@ class Doctor(object):
         parameters
         ----------
         doctor_type - Int (doctor specialty)
-        rate_doctor - Float (how long it takes on average to treat a patient)
+        rate_doctor - Float (probability of being done with a patient at each timestep)
         """
         self.type = doctor_type
         self.rate = rate_doctor
@@ -150,13 +134,13 @@ class Doctor(object):
         self.busy = None
  
 
-    def update(self, time_period):
+    def update(self):
         """Update the state of the doctor"""
         for p in self.queue: p.wait += 1
         # for p in self.queue: p.wait += time_period
 
         if self.busy:
-            if binom.rvs(1, expon.cdf(time_period, scale = self.rate)): # If done
+            if binom.rvs(1, rate): # If done
                 self.busy = None
                 # print("Done!")
             else:
@@ -165,7 +149,6 @@ class Doctor(object):
         if self.queue: # If queue not empty
             self.busy = self.queue.pop(0)
 
-    # Is it worth transforming that into a method that only works on Patient objects?
     def can_treat(self, severity):
         """Return whether the doctor can treat that type of ailment"""
         return severity <= self.type
