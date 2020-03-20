@@ -39,7 +39,7 @@ The total number of patients in the hospital is bounded.
 When the hospital is full, any arriving patient is sent away.
 
 A patient with need n has to be seen by a doctor of type n or above.
-For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *only then the patient has gone through the queue*.
+For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *only once the patient has gone through the queue*.
 
 
 ## TODO
