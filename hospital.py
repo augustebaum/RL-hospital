@@ -29,7 +29,15 @@ class Hospital(object):
         
         # Each list corresponds to a type of doctor
         # Will be assuming that doctor types go 0, 1, 2...
-        self.state     = [[]]*len(self.actions) + doctors + [Patient(need = random.choices(self.actions, weights = self.needs)[0])] 
+        self.queues = [[] for _ in range(len(self.actions)) ]
+
+        self.doctors = doctors
+
+        self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
+
+#        self.state     = [[] for _ in range(len(self.actions)) ] \
+#                         + doctors \
+#                         + [Patient(need = random.choices(self.actions, weights = self.needs)[0])] 
 
         #def r(self, s, a, s_):
         #    if s[0][0] == 0:
@@ -55,60 +63,60 @@ class Hospital(object):
         #    
         #    return result
 
-    def time_advance(self, policy):
+    def update(self, policy):
         """
-        Update the state (after a certain time period)
+        Update the state
 
         Inputs:
         ----------
         policy - Function that dispatches a patient based on the state
         """
-        s = self.state
+        s = self
 
         # Increase waiting time by 1
-        for queue in s[:len(self.actions)]:
-            queue = [ p.update() for p in queue ]
-            print("Queue updated")
+        for q in s.queues:
+            for p in q: p.update()
 
         # Make decision
         action = policy()
-        s[action].append(s[-1])
-        print("Queue",action,"now looks like", [p.wait for p in s[action]])
+        s.queues[action].append(s.newPatient)
 
         # Update doctors
-        for i, doctor in enumerate(s[len(self.actions):-1]):
-            doctor.update()
-            print("Doctor",i)
-            if (doctor.busy is None) and (queue := self.state[doctor.type]):
-            # BUG: doctor of 0 takes patients from queue 1!!
+        for d in s.doctors:
+            d.update()
+            if not(d.busy) and (queue := self.queues[d.type]):
             # If free and queue not empty
-                print("Will take from queue", [ p.wait for p in queue ])
-                doctor.busy = queue.pop(0)
-                if not(doctor.can_treat(doctor.busy.need)):
-                    print("Doctor: 'Can't treat them!'")
+                d.busy = queue.pop(0)
+                if not(d.can_treat(d.busy.need)):
                     # reward = -1000
-                    doctor.busy = None
-                print("Done, taking someone else")
+                    # What do you do with the failed patient? Right now they're just chucked away
+                    d.busy = None
 
         # Now do the rewards thing
 
         # New patient
-        s[-1] = Patient(need = random.choices(self.actions, weights = self.needs)[0])
+        s.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
 
+##### FEATURISATIONS ##########################
+    def feature(self):
+        """A representation of the hospital"""
+        pass
 
+##### POLICIES ################################  
     def policy_random(self):
         """The random policy"""
         # Return one of the possible actions with probability 1/(number of possible actions)
         return random.choice(self.actions)
 
+##### Make it nice ############################
     def pretty_print(self):
         """Prints out the hospital state"""
-        s = self.state
+        s = self
 
-        for i, l in enumerate(s[:len(self.actions)]):
-            print("Queue of type", i,":\t", [p.wait for p in l])
+        for i, q in enumerate(s.queues):
+            print("Queue of type", i,":\t", [p.wait for p in q])
 
-        for d in s[len(self.actions):-1]:
+        for d in s.doctors:
             print("Doctor of type", d.type,":\t", d.busy.need if d.busy else None)
         # Make the state into a list of lists of waiting times
         # new = [ list(map(lambda x: x.wait, d.queue)) for d in s[1:] ]
@@ -131,7 +139,7 @@ class Hospital(object):
         # for row in new:
         #     print(format_row.format(*row))
 
-        print("New patient with need:", s[-1].need, "\n")
+        print("New patient with need:", s.newPatient.need, "\n")
 
 class Doctor(object):
     """Defines a doctor"""
@@ -149,7 +157,7 @@ class Doctor(object):
         """
         self.type = doctor_type
         self.rate = rate_doctor
-        self.queue = []
+        # self.queue = []
         # Patient currently being treated;
         # None if doctor is free
         self.busy = None
@@ -157,11 +165,9 @@ class Doctor(object):
 
     def update(self):
         """Update the state of the doctor"""
-        # for p in self.queue: p.wait += 1
-        # for p in self.queue: p.wait += time_period
-
         if self.busy and binom.rvs(1, self.rate): # If done
             self.busy = None
+            print("Done!")
 
     def can_treat(self, severity):
         """Return whether the doctor can treat that type of ailment"""
