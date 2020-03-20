@@ -27,8 +27,8 @@ The agent immediately dispatches them to some queue, where they wait to be seen.
 The state is composed of:
 - the queues for each type of doctor (e.g.
 if there are doctors of type 0 and 1 then there will be 2 queues: one to see a doctor of type 0 and the other to see a doctor of type 1);
-- doctors, each with their own type and efficiency (probability of being done at each timestep);
-- a new patient with their characteristics (namely their need).
+- doctors, each with their own type (a whole number) and efficiency (probability of being done at each timestep);
+- a new patient with their characteristics (namely their need; a whole number, like patient types).
 Patients have a waiting time (the number of timesteps they have spent in the queue).
 
 To efficiently model the problem, classes `Doctor` and `Patient` have been implemented.
@@ -38,7 +38,7 @@ The queues contain `Patient` instances.
 The total number of patients in the hospital is bounded.
 When the hospital is full, any arriving patient is sent away.
 
-A patient with need $n$ has to be seen by a doctor of type $n$ or above.
+A patient with need n has to be seen by a doctor of type n or above.
 For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *only then the patient has gone through the queue*.
 
 
