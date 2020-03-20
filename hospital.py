@@ -1,7 +1,6 @@
 import random
 from scipy.stats import binom, expon
 
-
 class Hospital(object):
     """Defines a hospital with doctors of different types"""
 
@@ -20,8 +19,6 @@ class Hospital(object):
         """
         self.occupancy = occupancy
 
-        self.state     = [None] + doctors
-
         self.actions   = sorted([*{*[d.type for d in doctors]}])
 
         # Normalised needs; doctor types start at 0
@@ -30,6 +27,9 @@ class Hospital(object):
 
         self.needs     = needs
         
+        # Each list corresponds to a type of doctor
+        # Will be assuming that doctor types go 0, 1, 2...
+        self.state     = [[]]*len(self.actions) + doctors + [Patient(need = random.choices(self.actions, weights = self.needs)[0])] 
 
         #def r(self, s, a, s_):
         #    if s[0][0] == 0:
@@ -61,23 +61,39 @@ class Hospital(object):
 
         Inputs:
         ----------
-        policy - Function
-        time_period - Float (how long to go forward)
+        policy - Function that dispatches a patient based on the state
         """
         s = self.state
 
-        action = policy(s, self.actions)
-        # NEED TO CHANGE THIS IF THERE IS ONE QUEUE PER TYPE
-        s[action + 1].queue.append(s[0])
+        # Increase waiting time by 1
+        for queue in s[:len(self.actions)]:
+            queue = [ p.update() for p in queue ]
+            print("Queue updated")
 
-        # Look at which doctors finished during the time_period and update them
-        for i, doctor in enumerate(s[1:]):
+        # Make decision
+        action = policy()
+        s[action].append(s[-1])
+        print("Queue",action,"now looks like", [p.wait for p in s[action]])
+
+        # Update doctors
+        for i, doctor in enumerate(s[len(self.actions):-1]):
             doctor.update()
+            print("Doctor",i)
+            if (doctor.busy is None) and (queue := self.state[doctor.type]):
+            # BUG: doctor of 0 takes patients from queue 1!!
+            # If free and queue not empty
+                print("Will take from queue", [ p.wait for p in queue ])
+                doctor.busy = queue.pop(0)
+                if not(doctor.can_treat(doctor.busy.need)):
+                    print("Doctor: 'Can't treat them!'")
+                    # reward = -1000
+                    doctor.busy = None
+                print("Done, taking someone else")
 
-        # Now do the rewards thing?
+        # Now do the rewards thing
 
-        # Need to get need according to rates given in init
-        s[0] = Patient(need = random.choices(self.actions, weights = self.needs))
+        # New patient
+        s[-1] = Patient(need = random.choices(self.actions, weights = self.needs)[0])
 
 
     def policy_random(self):
@@ -89,28 +105,33 @@ class Hospital(object):
         """Prints out the hospital state"""
         s = self.state
 
+        for i, l in enumerate(s[:len(self.actions)]):
+            print("Queue of type", i,":\t", [p.wait for p in l])
+
+        for d in s[len(self.actions):-1]:
+            print("Doctor of type", d.type,":\t", d.busy.need if d.busy else None)
         # Make the state into a list of lists of waiting times
-        new = [ list(map(lambda x: x.wait, d.queue)) for d in s[1:] ]
-        lengths = list(map(len, new))
+        # new = [ list(map(lambda x: x.wait, d.queue)) for d in s[1:] ]
+        # lengths = list(map(len, new))
 
-        longest_length = max(lengths)
+        # longest_length = max(lengths)
 
-        for i in range(len(lengths)):
-            for _ in range(longest_length - lengths[i]):
-                new[i].append(" ") 
-        
-        # Transpose, kind of
-        new = list(zip(*new))
+        # for i in range(len(lengths)):
+        #     for _ in range(longest_length - lengths[i]):
+        #         new[i].append(" ") 
+        # 
+        # # Transpose, kind of
+        # new = list(zip(*new))
 
-        format_row = "{:^10}" * len(lengths)
-        print(format_row.format(*["Doctor "+str(i) for i in range(1,len(s)+1)]))
-        # How to print a tuple?
-        print(format_row.format(*[d.busy.need if d.busy else "None" for d in s[1:]]))
-        print(("{:*^"+str(10*len(lengths))+"}").format(""))
-        for row in new:
-            print(format_row.format(*row))
+        # format_row = "{:^10}" * len(lengths)
+        # print(format_row.format(*["Doctor "+str(i) for i in range(1,len(s)+1)]))
+        # # How to print a tuple?
+        # print(format_row.format(*[d.busy.need if d.busy else "None" for d in s[1:]]))
+        # print(("{:*^"+str(10*len(lengths))+"}").format(""))
+        # for row in new:
+        #     print(format_row.format(*row))
 
-        print("New patient:", s[0].need if s[0] else None,"\n")
+        print("New patient with need:", s[-1].need, "\n")
 
 class Doctor(object):
     """Defines a doctor"""
@@ -136,18 +157,11 @@ class Doctor(object):
 
     def update(self):
         """Update the state of the doctor"""
-        for p in self.queue: p.wait += 1
+        # for p in self.queue: p.wait += 1
         # for p in self.queue: p.wait += time_period
 
-        if self.busy:
-            if binom.rvs(1, rate): # If done
-                self.busy = None
-                # print("Done!")
-            else:
-                return # Don't change anything
-
-        if self.queue: # If queue not empty
-            self.busy = self.queue.pop(0)
+        if self.busy and binom.rvs(1, self.rate): # If done
+            self.busy = None
 
     def can_treat(self, severity):
         """Return whether the doctor can treat that type of ailment"""
@@ -168,3 +182,6 @@ class Patient(object):
         """
         self.need = need
         self.wait = 0
+
+    def update(self):
+        self.wait += 1
