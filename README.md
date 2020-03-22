@@ -43,5 +43,7 @@ For example, a patient with need 0 can be treated by any doctor, but a patient w
 
 
 ## TODO
-- The reward system is embedded in the process itself (the `time-advance` function);
-- A new, simpler representation should be implemented in order to evaluate and update the policy.
+- Integrate our Hospital object as a child of the Simulation object from the `fomlads` library.
+- Find one or more featurisations to try out.
+- Run simulations.
+- Find a way to represent the policy.

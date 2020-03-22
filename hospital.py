@@ -58,6 +58,8 @@ class Hospital(object):
         for d in s.doctors:
             d.update()
             if not(d.busy) and (queue := self.queues[d.type]):
+            # Syntax is new -- careful
+
             # If free and queue not empty
                 d.busy = queue.pop(0)
                 if not(d.can_treat(d.busy.need)):
