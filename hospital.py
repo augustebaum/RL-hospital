@@ -83,6 +83,12 @@ class Hospital(object):
             # terminal, reward = s.update(s.policy)
             # if terminal: break
 
+    def reset(self):
+        self.queues = [[] for _ in range(len(self.actions)) ]
+        self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
+        for d in self.doctors:
+            d.busy = None
+
 ##### FEATURISATIONS ##########################
     def feature(self):
         """A representation of the hospital"""
