@@ -42,9 +42,17 @@ A patient with need *n* has to be seen by a doctor of type *n* or above.
 For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *only once the patient has gone through the queue*.
 
 ## TODO
-- Integrate our Hospital object as a child of the Simulation object from the `fomlads` library (Todor)
+### On hold
+- Integrate our Hospital object as a child of the `Simulation` object from the `fomlads` library
+### Current
 - Find one or more featurisations to try out (Auguste)
-- Implement some learning algorithms.
+- Implement some learning algorithms, *preferrably with reason*
+- Find a way to measure the model's performance (Auguste)
 - Run simulations.
-- Find a way to represent the situation graphically (Auguste)
-- Start working on the report (Isabel)
+- Report (Isabel)
+#### Technical
+- Does the `simulate` function need to be given a policy, given that algorithms like SARSA generate a policy anyways?
+- Don't make `q_weigths` an attribute of Hospital because it depends on the featurisation.
+Instead, initialise it during learning algorithms (which could be passed a featurisation)
+- Add more reward updates to give more information to the learner? For example, a very low reward when occupancy is reached (+ make the episode terminate)
+- Put learning-related functions in separate file for readability/can easily be removed from repo in case Luke doesn't want it on there 
