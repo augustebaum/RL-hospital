@@ -57,15 +57,16 @@ class Hospital(object):
 
         for d in s.doctors:
             d.update()
-            if not(d.busy) and (queue := self.queues[d.type]):
-            # Syntax is new -- careful
-
-            # If free and queue not empty
-                d.busy = queue.pop(0)
-                if not(d.can_treat(d.busy.need)):
-                    reward -= 1000
-                    # What do you do with the failed patient? Right now they're just chucked away
-                    d.busy = None
+            if not(d.busy):
+                queue = self.queues[d.type]
+                # if queue is not empty
+                if queue:
+                # If free and queue not empty
+                    d.busy = queue.pop(0)
+                    if not(d.can_treat(d.busy.need)):
+                        reward -= 1000
+                        # What do you do with the failed patient? Right now they're just chucked away
+                        d.busy = None
 
         # Now do the rewards thing
         if sum(map(len, self.queues)) >= self.occupancy:
@@ -76,7 +77,7 @@ class Hospital(object):
 
         # return terminal, reward
 
-    def simulate(self, policy, limit=30):
+    def simulate(self, policy, limit = 30):
         s = self
         for _ in range(limit):
             # s.pretty_print()

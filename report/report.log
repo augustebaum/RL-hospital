@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.3.20)  3 MAR 2020 23:08
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2019.3.20)  27 MAR 2020 23:10
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -162,7 +162,7 @@ Package: authblk 2001/02/27 1.3 (PWD)
 LaTeX Warning: Unused global option(s):
     [11point].
 
-No file report.aux.
+(./report.aux)
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 23.
@@ -177,6 +177,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 23.
 LaTeX Font Info:    ... okay on input line 23.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 23.
 LaTeX Font Info:    ... okay on input line 23.
+
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -285,10 +286,6 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/it' in size <12> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 34.
 
 
-LaTeX Warning: Reference `eqn:simple_equation' on page 1 undefined on input lin
-e 51.
-
-
 LaTeX Warning: Citation `Mikolov2013' on page 1 undefined on input line 67.
 
 
@@ -297,28 +294,16 @@ LaTeX Warning: Citation `Fawcett2006' on page 1 undefined on input line 67.
 
 LaTeX Warning: Citation `Bishop2006' on page 1 undefined on input line 67.
 
-
-LaTeX Warning: Reference `sec:intro' on page 1 undefined on input line 72.
-
-
-LaTeX Warning: Reference `fig:simulation_figure' on page 1 undefined on input l
-ine 72.
-
-
-LaTeX Warning: Reference `tbl:results_table' on page 1 undefined on input line 
-72.
-
 <myfigure.jpg, id=1, 426.59375pt x 333.245pt>
 File: myfigure.jpg Graphic file (type jpg)
 <use myfigure.jpg>
 Package pdftex.def Info: myfigure.jpg  used on input line 76.
 (pdftex.def)             Requested size: 216.81pt x 169.36792pt.
-(./background.tex) (./method.tex) (./results.tex [1{/usr/local/texlive/2018/tex
-mf-var/fonts/map/pdftex/updmap/pdftex.map}
+[1{/usr/local/texlive/2018/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
 
- <./myfigure.jpg>]) (./discussion.tex)
+ <./myfigure.jpg>]
 No file report.bbl.
 [2
 
@@ -326,15 +311,12 @@ No file report.bbl.
 
 LaTeX Warning: There were undefined references.
 
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 2732 strings out of 492616
- 37477 string characters out of 6128982
- 116453 words of memory out of 5000000
- 6589 multiletter control sequences out of 15000+600000
+ 2721 strings out of 492616
+ 37344 string characters out of 6128982
+ 116493 words of memory out of 5000000
+ 6588 multiletter control sequences out of 15000+600000
  12333 words of font info for 44 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  41i,14n,25p,660b,315s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -355,7 +337,7 @@ e/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/
 2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2
 018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/local/texlive/20
 18/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt10.pfb>
-Output written on report.pdf (2 pages, 183329 bytes).
+Output written on report.pdf (2 pages, 182827 bytes).
 PDF statistics:
  80 PDF objects out of 1000 (max. 8388607)
  57 compressed objects within 1 object stream
