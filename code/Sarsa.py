@@ -18,19 +18,18 @@ def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
       parameters
       ----------
       env - an environment that can be reset and interacted with via step
-           In this case this is a hospital object
+          (typically this might be an MDPSimulation object)
       gamma - the geometric discount for calculating returns
       alpha - the learning rate
       epsilon - the epsilon to use with epsilon greedy policies 
       num_episodes - number of episode to run
-      num_steps - the number of steps per episode
+      max_steps (optional) - maximum number of steps per trace (to avoid very
+          long episodes)
 
       returns
       -------
-      Q_weights - the matrix with a weight vector per action
-      total_reward_per_episode - a list with the rewards for each episode
-      timeline_episodes - just a list of the form [0,1,2,3,4.....,num_episodes]
-              timeline_episodes is not really useful but it doesn't create problems either'
+      policy - an estimate for the optimal policy
+      Q - a Q-function estimate of the output policy
     """
     
     # used for the graphs at the end
