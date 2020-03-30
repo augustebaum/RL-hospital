@@ -11,8 +11,8 @@ doctors = [Doctor(0, 0.1),
            Doctor(2, 0.05),
            Doctor(2, 0.1)]
 
-types = [2, 1, 1]
-probs = [0.2, 0.1, 0.1, 0.05]
+# types = [2, 1, 1]
+# probs = [0.2, 0.1, 0.1, 0.05]
 
 # Hospital with occupancy of 20 people 
 # Patient of type 0 five times as likely than of type 2
