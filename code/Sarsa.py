@@ -12,24 +12,23 @@ import numpy as np
 
 def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
     """
-      Estimates optimal policy by interacting with an environment using
-      a td-learning approach
+      Currently returns a list with the rewards from each episode estimated using sarsa algorithm
 
       parameters
       ----------
       env - an environment that can be reset and interacted with via step
-          (typically this might be an MDPSimulation object)
+          (the hospital object in our case)
       gamma - the geometric discount for calculating returns
       alpha - the learning rate
       epsilon - the epsilon to use with epsilon greedy policies 
       num_episodes - number of episode to run
-      max_steps (optional) - maximum number of steps per trace (to avoid very
-          long episodes)
+      num_steps - number of steps per episode
 
       returns
       -------
-      policy - an estimate for the optimal policy
-      Q - a Q-function estimate of the output policy
+      Q_weights - the weight matrix, 1 weight vector for each action in the simulation
+      total_reward_per_episode - a list with the reward for each episode
+      timeline_episodes - just a list of the form [0,1,2,3,4.....,num_episodes] 
     """
     
     # used for the graphs at the end
