@@ -25,7 +25,7 @@ hospital = Hospital(20, doctors, [5, 2, 1])
 ##############################################################################
 # the variables needed for the Sarsa algorithm below and the result - currently 
 # not a useful result :(
-num_episodes = 300
+num_episodes = 80
 num_steps = 40
 gamma = 0.85
 alpha = 1 / num_steps
@@ -37,6 +37,8 @@ print("\nQ_weights:\n", Q_weights)
 #plt.figure(1)
 #plt.plot(timeline, total_reward_per_step)
 plt.figure(2)
+plt.xlabel("Episodes")
+plt.ylabel("Reward")
 plt.plot(timeline_episodes, total_reward_per_episode)
 
 

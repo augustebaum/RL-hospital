@@ -41,8 +41,7 @@ def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
     num_actions = len(env.actions)
     
     # Q_weights is going to be the weight matrix
-    # currently corresponding to our initial featurisation
-    Q_weights = np.zeros((num_actions, num_actions**2 + 1))
+    Q_weights = np.zeros((num_actions, len(env.feature())))
         
         
         

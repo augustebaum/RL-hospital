@@ -110,10 +110,12 @@ class Hospital(object):
                         reward -= d.busy.need
                         # What do you do with the failed patient? Right now they're just chucked away
                         d.busy = None
+                    else:
+                        reward += 1
 
         # Now do the rewards thing
         if sum(map(len, self.queues)) >= self.occupancy:
-            reward -= 0#(sum(map(len, self.queues)) - self.occupancy)
+            reward -= (sum(map(len, self.queues)) - self.occupancy)
             # terminate = True
 
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
