@@ -11,6 +11,26 @@ This code has been adapted from code provided by Luke Dickens on the UCL module 
 import numpy as np
 
 
+def feature_1(env):
+    
+    """A representation of the hospital"""
+    res = []
+    # Average number of patients waiting in the different queues
+    res.append(sum(map(len, env.queues))/len(env.queues))    
+    # Whether or not a given queue has more or fewer patients with a certain need than a threshold
+    for q in env.queues:
+        q = [ p.need for p in q ]             
+        for i in env.actions:
+            num_patients = q.count(i)
+            if num_patients < 1:
+                res.append(0)
+            elif num_patients <= 2:
+                res.append(1)
+            else:
+                res.append(2)
+    return np.array(res)
+
+
 
 def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
     """
@@ -43,7 +63,8 @@ def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
     num_actions = len(env.actions)
     
     # Q_weights is going to be the weight matrix
-    Q_weights = np.zeros((num_actions, len(env.feature())))
+    feature_rep = feature_1(env)
+    Q_weights = np.zeros((num_actions, len(feature_rep)))
         
         
         
@@ -55,7 +76,7 @@ def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
         # reset the hospital object for the next episode
         env.reset()
         
-        current_state_feature = env.feature()
+        current_state_feature = feature_1(env)
         current_action = sample_from_epsilon_greedy(current_state_feature,
                                                     Q_weights, epsilon)
         
@@ -63,7 +84,7 @@ def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
             
             step_reward = env.next_step(current_action)
             reward += step_reward
-            next_state_feature = env.feature() 
+            next_state_feature = feature_1(env)
             next_action = sample_from_epsilon_greedy(next_state_feature,
                                                     Q_weights, epsilon)
             
