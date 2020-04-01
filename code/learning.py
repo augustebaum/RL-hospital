@@ -10,9 +10,20 @@ This code has been adapted from code provided by Luke Dickens on the UCL module 
 
 import numpy as np
 
+##### FEATURISATIONS ##########################
+def feature(env):
+    """A representation of the hospital"""
+    res = []
+    # Average number of patients waiting in the different queues
+    res.append(sum(map(len, env.queues))/len(env.queues))    
+    # Whether or not a given queue has more or fewer patients with a certain need than a threshold
+    for q in env.queues:
+        q = [ p.need for p in q ]             
+        for i in env.actions:
+            res.append(int(q.count(i) >= 2))
+    return np.array(res)
 
 def feature_1(env):
-    
     """A representation of the hospital"""
     res = []
     # Average number of patients waiting in the different queues
@@ -30,9 +41,8 @@ def feature_1(env):
                 res.append(2)
     return np.array(res)
 
-
-
-def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
+###### LEARNING ALGORITHMS ##################
+def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
     """
       Currently returns a list with the rewards from each episode estimated using sarsa algorithm
 
@@ -63,10 +73,8 @@ def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
     num_actions = len(env.actions)
     
     # Q_weights is going to be the weight matrix
-    feature_rep = feature_1(env)
-    Q_weights = np.zeros((num_actions, len(feature_rep)))
-        
-        
+    s = featurisation(env)
+    Q_weights = np.zeros((num_actions, len(s)))
         
     # now we simulate the Sarsa algorithm
     for episode in range(num_episodes):
@@ -76,32 +84,47 @@ def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
         # reset the hospital object for the next episode
         env.reset()
         
-        current_state_feature = feature_1(env)
-        current_action = sample_from_epsilon_greedy(current_state_feature,
-                                                    Q_weights, epsilon)
+        s = featurisation(env)
+        a = sample_from_epsilon_greedy(s, Q_weights, epsilon)
         
         for step in range(num_steps):
             
-            step_reward = env.next_step(current_action)
+            step_reward = env.next_step(a)
             reward += step_reward
-            next_state_feature = feature_1(env)
-            next_action = sample_from_epsilon_greedy(next_state_feature,
-                                                    Q_weights, epsilon)
+            s_ = featurisation(env)
+            a_ = sample_from_epsilon_greedy(s_, Q_weights, epsilon)
             
-            Q_weights = sarsa_update(Q_weights, current_state_feature, current_action,
-                                     step_reward, next_state_feature, next_action,
+            Q_weights = sarsa_update(Q_weights, s, a,
+                                     step_reward, s_, a_,
                                      gamma, alpha)
             
-            current_state_feature = next_state_feature
-            current_action = next_action
+            s = s_
+            a = a_
             
         # now add to the total reward from the episode to the list
         total_reward_per_episode[episode] = reward
             
-            
     # return the final weight matrix and the list with episodic rewards
     return Q_weights, total_reward_per_episode, timeline_episodes
 
+
+def sarsa_update(qweights, s, a, r, s_, a_, gamma, alpha):
+    """
+    Updates the qweights following the sarsa method for function approximation.
+    ----------
+    s    - is the 1d numpy array of the state feature
+    a        - is the index of the action
+    qweights - a list of weight vectors, one per action
+        qweights[i] is the weights for the ith action    
+
+    returns
+    -------
+    """
+    q_current = state_action_value_function_approx(s, a, qweights)
+    q_next = state_action_value_function_approx(s_, a_, qweights)
+    DeltaW = alpha*(r +gamma*q_next - q_current)*s
+    qweights[a] += DeltaW
+    return qweights
 
 
 ###########################################################
@@ -109,12 +132,12 @@ def sarsa(env, gamma, alpha, epsilon, num_episodes, num_steps):
 ###########################################################
 
 
-
-def state_action_value_function_approx(s_rep, a, qweights):
+# Value-function approximation
+def state_action_value_function_approx(s, a, qweights):
     """
     parameters
     ----------
-    s_rep - is the 1d numpy array of the state feature
+    s - is the 1d numpy array of the state feature
     a - is the index of the action
     qweights - a list of weight vectors, one per action
         qweights[i] is the weights for the ith action    
@@ -123,30 +146,9 @@ def state_action_value_function_approx(s_rep, a, qweights):
     -------
     the q_value approximation for the state and action input
     """
-    qweights_a = qweights[a]
-    return np.dot(s_rep, qweights_a)
+    return np.dot(s, qweights[a])
 
-def sarsa_update(qweights, s_rep, a, r, next_s_rep, next_a, gamma, alpha):
-    """
-    A method that updates the qweights following the sarsa method for
-    function approximation. You will need to integrate this with the full
-    sarsa algorithm
-    parameters
-    ----------
-    s_rep - is the 1d numpy array of the state feature
-    a - is the index of the action
-    qweights - a list of weight vectors, one per action
-        qweights[i] is the weights for the ith action    
-
-    returns
-    -------
-    """
-    q_current = state_action_value_function_approx(s_rep, a, qweights)
-    q_next = state_action_value_function_approx(next_s_rep, next_a, qweights)
-    DeltaW = alpha*(r +gamma*q_next - q_current)*s_rep
-    qweights[a] += DeltaW
-    return qweights
-
+##### POLICIES ################################  
 def sample_from_epsilon_greedy(s_rep, qweights, epsilon):
     """
     A method to sample from the epsilon greedy policy associated with a
@@ -169,6 +171,7 @@ def sample_from_epsilon_greedy(s_rep, qweights, epsilon):
       return np.argmax(qvalues)
     return np.random.randint(qvalues.shape[0])
 
-
-
-
+def policy_random(qweights):
+    """Sample from the random policy"""
+    # Return one of the possible actions with probability 1/(number of possible actions)
+    return random.choice(range(qweights.shape[0]))

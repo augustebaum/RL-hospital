@@ -100,22 +100,30 @@ class Hospital(object):
 
         for d in self.doctors:
             d.update()
-            if not(d.busy):
+            #if not(d.busy):
+            #    queue = self.queues[d.type]
+            #    # if queue is not empty
+            #    if queue:
+            #    # If free and queue not empty
+            #        d.busy = queue.pop(0)
+            #        if not(d.can_treat(d.busy.need)):
+            #            reward -= d.busy.need
+            #            # What do you do with the failed patient? Right now they're just chucked away
+            #            d.busy = None
+            #        else:
+            #            reward += 1
+            while not(d.busy) and self.queues[d.type]:
                 queue = self.queues[d.type]
-                # if queue is not empty
-                if queue:
-                # If free and queue not empty
-                    d.busy = queue.pop(0)
-                    if not(d.can_treat(d.busy.need)):
-                        reward -= d.busy.need
-                        # What do you do with the failed patient? Right now they're just chucked away
-                        d.busy = None
-                    else:
-                        reward += 1
+                d.busy = queue.pop(0)
+                if not(d.can_treat(d.busy.need)):
+                # if patient can't be treated
+                    reward -= 10*d.busy.wait*d.busy.need
+                    d.busy = None
 
-        # Now do the rewards thing
         if sum(map(len, self.queues)) >= self.occupancy:
-            reward -= (sum(map(len, self.queues)) - self.occupancy)
+        # if hospital is full
+            # reward -= (sum(map(len, self.queues)) - self.occupancy)
+            reward -= 1000
             # terminate = True
 
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
@@ -138,24 +146,6 @@ class Hospital(object):
         for d in self.doctors:
             d.busy = None
 
-##### FEATURISATIONS ##########################
-    def feature(self):
-        """A representation of the hospital"""
-        res = []
-        # Average number of patients waiting in the different queues
-        res.append(sum(map(len, self.queues))/len(self.queues))    
-        # Whether or not a given queue has more or fewer patients with a certain need than a threshold
-        for q in self.queues:
-            q = [ p.need for p in q ]             
-            for i in self.actions:
-                res.append(int(q.count(i) >= 2))
-        return np.array(res)               #### made it to return an array instead of list
-
-##### POLICIES ################################  
-    def policy_random(self):
-        """The random policy"""
-        # Return one of the possible actions with probability 1/(number of possible actions)
-        return random.choice(self.actions)
 
 ##### Make it nice ############################
     def pretty_print(self):
@@ -205,7 +195,7 @@ class Patient(object):
     """Defines a patient"""
 
     def __init__(self,
-        need):
+        need, wait = 0):
         """
         Constructs a patient
 
@@ -214,7 +204,7 @@ class Patient(object):
         need - Int (severity of patient's ailment; higher is more urgent)
         """
         self.need = need
-        self.wait = 0
+        self.wait = wait
 
     def update(self):
         self.wait += 1

@@ -1,5 +1,5 @@
 from hospital import *
-from Sarsa import *
+from learning import *
 import matplotlib.pyplot as plt
 
 
@@ -31,7 +31,12 @@ gamma = 0.85
 alpha = 1 / num_steps
 epsilon = 0.1
 
-Q_weights, total_reward_per_episode, timeline_episodes = sarsa(hospital, gamma, alpha, epsilon, num_episodes, num_steps)
+#hospital.queues[0] = [Patient(2,3),Patient(1, 5), Patient(1, 5), Patient(2, 5), Patient(2, 5)] 
+#hospital.pretty_print()
+#hospital.next_step(0)
+#hospital.pretty_print()
+
+Q_weights, total_reward_per_episode, timeline_episodes = sarsa(hospital, feature_1, gamma, alpha, epsilon, num_episodes, num_steps)
 
 print("\nQ_weights:\n", Q_weights)
 #plt.figure(1)
