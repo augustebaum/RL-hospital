@@ -100,6 +100,7 @@ class Hospital(object):
 
         for d in self.doctors:
             d.update()
+            # If you get a patient you can't treat, send them away and become free
             #if not(d.busy):
             #    queue = self.queues[d.type]
             #    # if queue is not empty
@@ -112,6 +113,7 @@ class Hospital(object):
             #            d.busy = None
             #        else:
             #            reward += 1
+            # If you get a patient you can't treat, send them away and try again immediately, as many times as possible
             while not(d.busy) and self.queues[d.type]:
                 queue = self.queues[d.type]
                 d.busy = queue.pop(0)
@@ -119,12 +121,14 @@ class Hospital(object):
                 # if patient can't be treated
                     reward -= 10*d.busy.wait*d.busy.need
                     d.busy = None
+                else:
+                    reward -= d.busy.wait*d.busy.need
 
         if sum(map(len, self.queues)) >= self.occupancy:
         # if hospital is full
             # reward -= (sum(map(len, self.queues)) - self.occupancy)
             reward -= 1000
-            # terminate = True
+            self.isTerminal = True
 
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
 
@@ -145,6 +149,7 @@ class Hospital(object):
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
         for d in self.doctors:
             d.busy = None
+        self.isTerminal = False
 
 
 ##### Make it nice ############################
@@ -185,6 +190,7 @@ class Doctor(object):
         """Update the state of the doctor"""
         if self.busy and binom.rvs(1, self.rate): # If done
             self.busy = None
+            print("done")
 
     def can_treat(self, severity):
         """Return whether the doctor can treat that type of ailment"""
