@@ -45,14 +45,10 @@ For example, a patient with need 0 can be treated by any doctor, but a patient w
 ### On hold
 - Integrate our Hospital object as a child of the `Simulation` object from the `fomlads` library
 ### Current
-- Find one or more featurisations to try out (Auguste)
-- Implement some learning algorithms, *preferrably with reason*
+- Find one or more featurisations to try out (Use log) (Auguste) 
+- Implement some learning algorithms, *preferrably with reason* (Todor)
 - Find a way to measure the model's performance (Auguste)
-- Run simulations.
-- Report (Isabel)
+ -> Compare how the learner behaves as parameters are changed (e.g. doctor of higher type finishes faster -> does the learner give them more low priority patients?)
+- Report (Isabel, Auguste, Yongxin)
 #### Technical
-- Does the `simulate` function need to be given a policy, given that algorithms like SARSA generate a policy anyways?
-- Don't make `q_weigths` an attribute of Hospital because it depends on the featurisation.
-Instead, initialise it during learning algorithms (which could be passed a featurisation)
-- Add more reward updates to give more information to the learner? For example, a very low reward when occupancy is reached (+ make the episode terminate)
-- Put learning-related functions in separate file for readability/can easily be removed from repo in case Luke doesn't want it on there 
+- Look for different q-function approximations (RBFs? Monomials)? (Todor)
