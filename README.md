@@ -20,7 +20,7 @@ The hospital doesn't provide appointment services (might be a walk-in centre).
 This is modelled as a discrete-time process.
 
 At each timestep:
-- One patient arrives at the hospital, and declare the severity of their ailment (in the form of an Int).
+- One patient arrives at the hospital, and declare the severity of their ailment (in the form of an `Int`).
 The agent immediately dispatches them to some queue, where they wait to be seen.
 - One or more doctors can finish treating patients, in which case they immediately start treating the first person in the queue.
 
@@ -38,12 +38,17 @@ The queues contain `Patient` instances.
 The total number of patients in the hospital is bounded.
 When the hospital is full, any arriving patient is sent away.
 
-A patient with need n has to be seen by a doctor of type n or above.
+A patient with need *n* has to be seen by a doctor of type *n* or above.
 For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *only once the patient has gone through the queue*.
 
-
 ## TODO
-- Integrate our Hospital object as a child of the Simulation object from the `fomlads` library.
-- Find one or more featurisations to try out.
-- Run simulations.
-- Find a way to represent the policy.
+### On hold
+- Integrate our Hospital object as a child of the `Simulation` object from the `fomlads` library
+### Current
+- Find one or more featurisations to try out (Use log) (Auguste) 
+- Implement some learning algorithms, *preferrably with reason* (Todor)
+- Find a way to measure the model's performance (Auguste)
+ -> Compare how the learner behaves as parameters are changed (e.g. doctor of higher type finishes faster -> does the learner give them more low priority patients?)
+- Report (Isabel, Auguste, Yongxin)
+#### Technical
+- Look for different q-function approximations (RBFs? Monomials)? (Todor)

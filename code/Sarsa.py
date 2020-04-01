@@ -3,6 +3,8 @@
 Created on Mon Mar 30 18:18:12 2020
 
 @author: todor
+
+This code has been adapted from code provided by Luke Dickens on the UCL module INST0060: Foundations of Machine Learning and Data Science
 """
 
 
