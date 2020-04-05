@@ -193,10 +193,10 @@ class Doctor(object):
         """Update the state of the doctor"""
         if self.busy and binom.rvs(1, self.rate): # If done
             self.busy = None
-<<<<<<< HEAD
-=======
+#<<<<<<< HEAD
+#=======
             #print("done")
->>>>>>> 4df58fd25fcffbc5d8d8fb19fb946c0f683f74bd
+#>>>>>>> 4df58fd25fcffbc5d8d8fb19fb946c0f683f74bd
 
     def can_treat(self, severity):
         """Return whether the doctor can treat that type of ailment"""
