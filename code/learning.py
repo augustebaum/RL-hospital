@@ -6,8 +6,7 @@ Created on Mon Mar 30 18:18:12 2020
 
 This code has been adapted from code provided by Luke Dickens on the UCL module INST0060: Foundations of Machine Learning and Data Science
 """
-
-
+import matplotlib.pyplot as plt
 import numpy as np
 import random
 
@@ -76,27 +75,24 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
     # the number of possible doctor assignments for a patient
     num_actions = len(env.actions)
     
-    # Q_weights is going to be the weight matrix
+    # Q_weights is the weight matrix
     s = featurisation(env)
     Q_weights = np.zeros((num_actions, len(s)))
         
-    # now we simulate the Sarsa algorithm
+    # Apply Sarsa algorithm
     for episode in range(num_episodes):
         
         # variable to follow the reward evolution after each step
         reward = 0
         # reset the hospital object for the next episode
         env.reset()
-        
         s = featurisation(env)
         a = sample_from_epsilon_greedy(s, Q_weights, epsilon)
-        
+       
         for step in range(num_steps):
-            
             # finish the current episode if the max occupancy is reached
             if env.isTerminal:
-                t_list.append("t_episode:" + str(episode) + " step:" + str(step) + "\n")
-                
+                t_list.append("Episode " + str(episode) + " finished at step " + str(step))
                 break
             
             step_reward = env.next_step(a)
@@ -104,19 +100,16 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
             s_ = featurisation(env)
             a_ = sample_from_epsilon_greedy(s_, Q_weights, epsilon)
             
-            Q_weights = sarsa_update(Q_weights, s, a,
-                                     step_reward, s_, a_,
-                                     gamma, alpha)
+            Q_weights = sarsa_update(Q_weights, s, a, step_reward, s_, a_, gamma, alpha)
             
             s = s_
             a = a_
-            print("\nStep: {}\n".format(step))
-            env.pretty_print()
+            # print("\nStep: {}\n".format(step))
+            # env.pretty_print()
         # now add to the total reward from the episode to the list
         total_reward_per_episode[episode] = reward
-       # print("\nStep: {}\n".format(step))
+       # print("\nEpisode: {}\n".format(step))
         
-            
     # return the final weight matrix and the list with episodic rewards
     return t_list, Q_weights, total_reward_per_episode, timeline_episodes
 
@@ -162,24 +155,25 @@ def state_action_value_function_approx(s, a, qweights):
     return np.dot(s, qweights[a])
 
 ##### POLICIES ################################  
-def sample_from_epsilon_greedy(s_rep, qweights, epsilon):
+def sample_from_epsilon_greedy(s, qweights, epsilon):
     """
     A method to sample from the epsilon greedy policy associated with a
     set of q_weights which captures a linear state-action value-function
 
     parameters
     ----------
-    s_rep - is the 1d numpy array of the state feature
+    s - is the 1d numpy array of the state feature
     a - is the index of the action
     qweights - a list of weight vectors, one per action
         qweights[i] is the weights for the ith action    
 
     returns
     -------
+    decision taken using the epsilon-greedy policy 
     """
     qvalues = np.empty(qweights.shape[0])
     for a in range(qweights.shape[0]):
-        qvalues[a] = state_action_value_function_approx(s_rep, a, qweights)
+        qvalues[a] = state_action_value_function_approx(s, a, qweights)
     if np.random.random() > epsilon:
       return np.argmax(qvalues)
     return np.random.randint(qvalues.shape[0])
@@ -188,3 +182,52 @@ def policy_random(qweights):
     """Sample from the random policy"""
     # Return one of the possible actions with probability 1/(number of possible actions)
     return random.choice(range(qweights.shape[0]))
+
+##### Visualisations ###########################
+def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0.1, plot = False):
+    """ 
+    Simulates a hospital using the epsilon-greedy
+    policy based on weights and can plot a stacked bar plot with the results
+
+    Inputs:
+    -----------
+    env: a hospital instance
+    steps: how many steps to simulate
+    featurisation: outputs a representation for a given hospital state
+    q_weights: a set of weights which was learned; these should be based
+        on learning done using the above featurisation
+    epsilon: probability of choosing action randomly
+    """
+    N = len(env.actions)
+    props = np.zeros([N, N])
+    for _ in range(steps):
+        s = featurisation(env)
+        a = sample_from_epsilon_greedy(s, q_weights, epsilon)
+        props[env.newPatient.need, a] += 1
+        env.next_step(a)
+    
+    props = props/steps*100
+    
+    if plot:
+        fig, ax = plt.subplots()
+        p = [ax.bar(range(N), props[0,:])]
+        for i in range(N):
+            p.append(ax.bar(range(N), props[i,:], bottom = props[i-1,:]))
+
+        plt.ylabel("Proportions")
+        plt.title('Proportion of each patient type by queue')
+        plt.xticks(range(N), ['Queue '+str(i) for i in range(N)] )
+        plt.yticks(np.arange(0, 101, 10))
+        # plt.legend((p1[0], p2[0]), ('Men', 'Women'))
+        # plt.legend(map(lambda x: np.take(x, 0), p), ['Type '+str(i) for i in range(N)])
+        plt.legend(tuple( p[i][0] for i in range(N) ), tuple('Type '+str(i) for i in range(N)))
+        print(tuple( p[i][0] for i in range(N) ))
+
+        plt.show()
+
+    return props
+
+    
+
+
+

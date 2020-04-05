@@ -7,6 +7,7 @@ class Hospital(object):
 
     def __init__(self,
             occupancy,
+
             doctors,
             needs):
         """
@@ -38,53 +39,9 @@ class Hospital(object):
         # Initialise patient with a random need
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
 
-    def update(self, policy):
-        """
-        Update the state
-
-        Inputs:
-        ----------
-        policy - Function that dispatches a patient based on the state
-        """
-        s = self
-        # terminate = False
-        reward = 0
-
-        for queue in s.queues:
-            for patient in queue: patient.update()
-
-        action = policy()
-        s.queues[action].append(s.newPatient)
-
-        for d in s.doctors:
-            d.update()
-            if not(d.busy):
-                queue = self.queues[d.type]
-                # if queue is not empty
-                if queue:
-                # If free and queue not empty
-                    d.busy = queue.pop(0)
-                    if not(d.can_treat(d.busy.need)):
-                        reward -= 1000
-                        # What do you do with the failed patient? Right now they're just chucked away
-                        d.busy = None
-
-        # Now do the rewards thing
-        if sum(map(len, self.queues)) >= self.occupancy:
-            reward -= 100
-            # terminate = True
-
-        s.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
-
-        # return terminal, reward
-        
-    ##############################################
-    #  just added this function which is similar #
-    #  to the previous one                       #
-    ##############################################
     def next_step(self, action):
         """
-        Update the internal state for sarsa and get the reward
+        Update the internal state according to an action and get the reward
 
         Inputs:
         ----------
@@ -140,20 +97,15 @@ class Hospital(object):
     def simulate(self, policy, limit = 30):
         s = self
         for _ in range(limit):
-            # s.pretty_print()
             print(s.feature())
             s.update(policy)
-            # terminal, reward = s.update(s.policy)
-            # if terminal: break
-        
 
     def reset(self):
-        self.queues = [[] for _ in range(len(self.actions)) ]
+        self.queues = [ [] for _ in range(len(self.actions)) ]
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
         for d in self.doctors:
             d.busy = None
         self.isTerminal = False
-
 
 ##### Make it nice ############################
     def pretty_print(self):
@@ -193,10 +145,6 @@ class Doctor(object):
         """Update the state of the doctor"""
         if self.busy and binom.rvs(1, self.rate): # If done
             self.busy = None
-<<<<<<< HEAD
-=======
-            #print("done")
->>>>>>> 4df58fd25fcffbc5d8d8fb19fb946c0f683f74bd
 
     def can_treat(self, severity):
         """Return whether the doctor can treat that type of ailment"""
