@@ -124,6 +124,9 @@ class Hospital(object):
                 else:
                     reward -= d.busy.wait*d.busy.need
 
+        # More people is bad
+        reward -= sum(map(len, self.queues))
+
         if sum(map(len, self.queues)) >= self.occupancy:
         # if hospital is full
             # reward -= (sum(map(len, self.queues)) - self.occupancy)
@@ -190,7 +193,6 @@ class Doctor(object):
         """Update the state of the doctor"""
         if self.busy and binom.rvs(1, self.rate): # If done
             self.busy = None
-            print("done")
 
     def can_treat(self, severity):
         """Return whether the doctor can treat that type of ailment"""

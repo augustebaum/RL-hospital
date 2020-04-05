@@ -2,48 +2,38 @@ from hospital import *
 from learning import *
 import matplotlib.pyplot as plt
 
+def simulation1(featurisation = feature_1, num_episodes = 30, num_steps = 40, gamma = 0.85, alpha = None, epsilon = 0.1):
+    """
+    Two doctors, one of type 0 and one of type 1, and only patients of type 1.
+    The expected result is that all patients are dispatched to queue 1.
+    """
+    if alpha is None: alpha = 1/num_steps
+    # One of level 0 that has probability of being done of 0.2
+    # One of level 1 that has probability of being done of 0.1
+    doctors = [Doctor(0, 0.2), Doctor(1, 0.1)]
+    
+    # Hospital with occupancy of 20 people 
+    # Patient of type 1 5000 times more likely than type 0
+    hospital = Hospital(20, doctors, [1, 5000])
 
-# Doctors
-# One of level 0 that has probability of being done of 0.2
-# One of level 0 that has probability of being done of 0.1
-# One of level 1 that has probability of being done of 0.1
-# One of level 2 that has probability of being done of 0.05
-doctors = [Doctor(0, 0.2),
-           Doctor(0, 0.1),
-           Doctor(1, 0.1),
-           Doctor(2, 0.05)]
-#types = [2, 1, 1]
-probs = [0.2, 0.1, 0.1, 0.05]
+    # Q_weights, total_reward_per_episode, timeline_episodes = sarsa(hospital, feature_1, gamma, alpha, epsilon, num_episodes, num_steps)
+    return sarsa(hospital, featurisation, gamma, alpha, epsilon, num_episodes, num_steps)
 
-# Hospital with occupancy of 20 people 
-# Patient of type 0 five times as likely than of type 2
-# Patient of type 1 twice as likely than of type 2
-hospital = Hospital(20, doctors, [5, 2, 1])
+def main():
+    print("hello")
+    Q_weights, total_reward_per_episode, timeline_episodes = simulation1(featurisation = feature_2, num_episodes = 50, num_steps = 100)
+    print("\nQ_weights:\n", Q_weights)
+    #plt.figure(1)
+    #plt.plot(timeline, total_reward_per_step)
+    # plt.figure(2)
+    fig, ax = plt.subplots()
+    plt.xlabel("Episodes")
+    plt.ylabel("Reward")
+    plt.title("Simulation 1")
+    print(total_reward_per_episode)
+    plt.plot(timeline_episodes, total_reward_per_episode)
 
-#hospital.simulate(hospital.policy_random, limit = 30)
+    plt.show()
 
-##############################################################################
-# the variables needed for the Sarsa algorithm below and the result - currently 
-# not a useful result :(
-num_episodes = 80
-num_steps = 40
-gamma = 0.85
-alpha = 1 / num_steps
-epsilon = 0.1
-
-hospital.queues[0] = [Patient(0, 1), Patient(2,3),Patient(1, 5), Patient(0, 5), Patient(2, 5), Patient(2, 5)] 
-hospital.pretty_print()
-hospital.next_step(1)
-hospital.pretty_print()
-
-# Q_weights, total_reward_per_episode, timeline_episodes = sarsa(hospital, feature_1, gamma, alpha, epsilon, num_episodes, num_steps)
-# 
-# print("\nQ_weights:\n", Q_weights)
-# #plt.figure(1)
-# #plt.plot(timeline, total_reward_per_step)
-# plt.figure(2)
-# plt.xlabel("Episodes")
-# plt.ylabel("Reward")
-# plt.plot(timeline_episodes, total_reward_per_episode)
-
-
+if __name__ == '__main__':
+    main()

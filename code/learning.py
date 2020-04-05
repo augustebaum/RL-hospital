@@ -11,18 +11,6 @@ This code has been adapted from code provided by Luke Dickens on the UCL module 
 import numpy as np
 
 ##### FEATURISATIONS ##########################
-def feature(env):
-    """A representation of the hospital"""
-    res = []
-    # Average number of patients waiting in the different queues
-    res.append(sum(map(len, env.queues))/len(env.queues))    
-    # Whether or not a given queue has more or fewer patients with a certain need than a threshold
-    for q in env.queues:
-        q = [ p.need for p in q ]             
-        for i in env.actions:
-            res.append(int(q.count(i) >= 2))
-    return np.array(res)
-
 def feature_1(env):
     """A representation of the hospital"""
     res = []
@@ -39,6 +27,18 @@ def feature_1(env):
                 res.append(1)
             else:
                 res.append(2)
+    return np.array(res)
+
+def feature_2(env):
+    """A representation of the hospital"""
+    res = []
+    # Average number of patients waiting in the different queues
+    res.append(sum(map(len, env.queues))/len(env.queues))    
+    # Whether or not a given queue has more or fewer patients with a certain need than a threshold
+    for q in env.queues:
+        q = [ p.need for p in q ]             
+        for i in env.actions:
+            res.append(int(q.count(i) >= 2))
     return np.array(res)
 
 ###### LEARNING ALGORITHMS ##################
