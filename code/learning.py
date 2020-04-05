@@ -9,6 +9,7 @@ This code has been adapted from code provided by Luke Dickens on the UCL module 
 
 
 import numpy as np
+import random
 
 ##### FEATURISATIONS ##########################
 def feature(env):
@@ -63,6 +64,8 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
       timeline_episodes - just a list of the form [0,1,2,3,4.....,num_episodes] 
     """
     
+    # list that saves the episodes that have been stopped prematurely
+    t_list = []
     # used for the graphs at the end
     #total_reward_per_step = np.zeros(num_steps)
     total_reward_per_episode = np.zeros(num_episodes)
@@ -89,6 +92,12 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
         
         for step in range(num_steps):
             
+            # finish the current episode if the max occupancy is reached
+            if env.isTerminal:
+                t_list.append("t_episode:" + str(episode) + " step:" + str(step) + "\n")
+                
+                break
+            
             step_reward = env.next_step(a)
             reward += step_reward
             s_ = featurisation(env)
@@ -100,12 +109,15 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
             
             s = s_
             a = a_
-            
+            print("\nStep: {}\n".format(step))
+            env.pretty_print()
         # now add to the total reward from the episode to the list
         total_reward_per_episode[episode] = reward
+       # print("\nStep: {}\n".format(step))
+        
             
     # return the final weight matrix and the list with episodic rewards
-    return Q_weights, total_reward_per_episode, timeline_episodes
+    return t_list, Q_weights, total_reward_per_episode, timeline_episodes
 
 
 def sarsa_update(qweights, s, a, r, s_, a_, gamma, alpha):
