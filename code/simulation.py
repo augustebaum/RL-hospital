@@ -21,8 +21,11 @@ def simulation1(featurisation = feature_1, num_episodes = 30, num_steps = 40, ga
 
 def main():
     print("hello")
-    Q_weights, total_reward_per_episode, timeline_episodes = simulation1(featurisation = feature_2, num_episodes = 50, num_steps = 100)
+    t_list, Q_weights, total_reward_per_episode, timeline_episodes = simulation1(featurisation = feature_2, num_episodes = 50, num_steps = 100)
     print("\nQ_weights:\n", Q_weights)
+    print("\nThe list with termination episodes:\n", t_list)
+    print("\nTotal number of terminated episode: ", len(t_list))
+    print("\nrewards per episode:\n", total_reward_per_episode)
     #plt.figure(1)
     #plt.plot(timeline, total_reward_per_step)
     # plt.figure(2)
@@ -32,6 +35,7 @@ def main():
     plt.title("Simulation 1")
     print(total_reward_per_episode)
     plt.plot(timeline_episodes, total_reward_per_episode)
+    plt.plot(timeline_episodes, np.zeros(num_episodes))
 
     plt.show()
 
