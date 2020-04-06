@@ -210,18 +210,17 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0.1, plot = F
     
     if plot:
         fig, ax = plt.subplots()
-        p = [ax.bar(range(N), props[0,:])]
-        for i in range(N):
-            p.append(ax.bar(range(N), props[i,:], bottom = props[i-1,:]))
+        cumsum = props[0,:]
+        p = [ax.bar(range(N), cumsum, color=(0,1,0))]
+        for i in range(1,N):
+            p.append(ax.bar(range(N), props[i,:], bottom = cumsum, color = ( (i+1)/N, 1-(i+1)/N, 0 )))
+            cumsum = cumsum + props[i,:]
 
         plt.ylabel("Proportions")
         plt.title('Proportion of each patient type by queue')
         plt.xticks(range(N), ['Queue '+str(i) for i in range(N)] )
         plt.yticks(np.arange(0, 101, 10))
-        # plt.legend((p1[0], p2[0]), ('Men', 'Women'))
-        # plt.legend(map(lambda x: np.take(x, 0), p), ['Type '+str(i) for i in range(N)])
         plt.legend(tuple( p[i][0] for i in range(N) ), tuple('Type '+str(i) for i in range(N)))
-        print(tuple( p[i][0] for i in range(N) ))
 
         plt.show()
 
