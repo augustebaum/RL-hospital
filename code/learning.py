@@ -52,11 +52,30 @@ def feature_3(env):
     res = []
     # Average number of patients waiting in the different queues
     res.append(sum(map(len, env.queues)) / len(env.queues))    
-    # Whether or not a given queue has more or fewer patients with a certain need than a threshold
+    # adds total number of different patients in separate queues
     for q in env.queues:
         q = [ p.need for p in q ]             
         for i in env.actions:
             res.append(q.count(i))
+    return np.array(res)
+
+def feature_4(env):
+    """A representation of the hospital
+       The first element is just the total number of patients in all the queues.
+       The following elements include waiting time and number of different patient in 
+       each queue.
+    """
+    res = []
+    # Average number of patients waiting in the different queues
+    res.append(sum(map(len, env.queues)) / len(env.queues))    
+    # adds waiting time in the queue in the feature along with the number of patients
+    # wait time added should be adjusted when changing the number of steps in the model
+    for q in env.queues:
+        q_ = [ p.need for p in q ]
+        wait_time = sum([p.wait for p in q])/100
+        res.append(wait_time)
+        for i in env.actions:
+            res.append(q_.count(i))
     return np.array(res)
 
 ###### LEARNING ALGORITHMS ##################
