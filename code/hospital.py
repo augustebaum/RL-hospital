@@ -7,7 +7,6 @@ class Hospital(object):
 
     def __init__(self,
             occupancy,
-
             doctors,
             needs):
         """
@@ -76,10 +75,10 @@ class Hospital(object):
                 d.busy = queue.pop(0)
                 if not(d.can_treat(d.busy.need)):
                 # if patient can't be treated
-                    reward -= 10*(d.busy.wait + 1)*d.busy.need
+                    reward -= 10*(d.busy.wait + 1)*(d.busy.need + 1)
                     d.busy = None
                 else:
-                    reward -= (d.busy.wait + 1)*d.busy.need
+                    reward -= (d.busy.wait + 1)*(d.busy.need + 1)
 
         # More people is bad
         reward -= sum(map(len, self.queues))
@@ -93,6 +92,14 @@ class Hospital(object):
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
 
         return reward
+    
+    # a function to approximate the maximum possible reward in the simulation - min possible penalties assumed
+    # according to the current model 07/04/2020  20:21
+    def max_average_reward(self):
+        need_list = np.array(self.actions) + 1
+        arrival_probs = np.array(self.needs) / sum(self.needs)
+        return np.dot(need_list, arrival_probs)
+        
 
     def simulate(self, policy, limit = 30):
         s = self
