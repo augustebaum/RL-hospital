@@ -184,7 +184,7 @@ def policy_random(qweights):
     return random.choice(range(qweights.shape[0]))
 
 ##### Visualisations ###########################
-def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0.1, plot = False):
+def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = False):
     """ 
     Simulates a hospital using the epsilon-greedy
     policy based on weights and can plot a stacked bar plot with the results
