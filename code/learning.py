@@ -23,10 +23,12 @@ def feature_1(env):
             num_patients = q.count(i)
             if num_patients < 1:
                 res.append(0)
-            elif num_patients <= 2:
+            elif num_patients <= 1:
                 res.append(1)
-            else:
+            elif num_patients <= 3:
                 res.append(2)
+            else:
+                res.append(3)
     return np.array(res)
 
 def feature_2(env):
@@ -39,6 +41,41 @@ def feature_2(env):
         q = [ p.need for p in q ]             
         for i in env.actions:
             res.append(int(q.count(i) >= 2))
+    return np.array(res)
+
+def feature_3(env):
+    """A representation of the hospital
+       The first element is just the total number of patients in all the queues.
+       The following elements just represent the number of different patients(needs)
+       in each queue.
+    """
+    res = []
+    # Average number of patients waiting in the different queues
+    res.append(sum(map(len, env.queues)) / len(env.queues))    
+    # adds total number of different patients in separate queues
+    for q in env.queues:
+        q = [ p.need for p in q ]             
+        for i in env.actions:
+            res.append(q.count(i))
+    return np.array(res)
+
+def feature_4(env):
+    """A representation of the hospital
+       The first element is just the total number of patients in all the queues.
+       The following elements include waiting time and number of different patient in 
+       each queue.
+    """
+    res = []
+    # Average number of patients waiting in the different queues
+    res.append(sum(map(len, env.queues)) / len(env.queues))    
+    # adds waiting time in the queue in the feature along with the number of patients
+    # wait time added should be adjusted when changing the number of steps in the model
+    for q in env.queues:
+        q_ = [ p.need for p in q ]
+        wait_time = sum([p.wait for p in q])/100
+        res.append(wait_time)
+        for i in env.actions:
+            res.append(q_.count(i))
     return np.array(res)
 
 ###### LEARNING ALGORITHMS ##################
@@ -63,14 +100,17 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
       timeline_episodes - just a list of the form [0,1,2,3,4.....,num_episodes] 
       t_list - List of when each episode terminated
     """
-    
+    if alpha == None:
+        alpha = 1 / num_steps
     # list that saves the episodes that have been stopped prematurely
     t_list = []
     # used for the graphs at the end
     #total_reward_per_step = np.zeros(num_steps)
     total_reward_per_episode = np.zeros(num_episodes)
     #timeline_steps = [i for i in range(num_steps)]
-    timeline_episodes = [i for i in range(num_episodes)]
+    #timeline_episodes = [i for i in range(num_episodes)]
+    
+    
     
     # the number of possible doctor assignments for a patient
     num_actions = len(env.actions)
@@ -111,7 +151,7 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
        # print("\nEpisode: {}\n".format(step))
         
     # return the final weight matrix and the list with episodic rewards
-    return t_list, Q_weights, total_reward_per_episode, timeline_episodes
+    return t_list, Q_weights, total_reward_per_episode
 
 
 def sarsa_update(qweights, s, a, r, s_, a_, gamma, alpha):

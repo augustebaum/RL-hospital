@@ -16,6 +16,7 @@ doctors = [Doctor(0, 0.1),
 hospital = Hospital(20, doctors, [1, 1, 1, 1, 1, 1, 1, 1, 1])
 
 feature = feature_1
+# alpha was previously 1/50, now is calculated as 1/num_steps
 
 t_list, Q_weights, total_reward_per_episode, timeline_episodes = sarsa(hospital, featurisation = feature, gamma = 0.85, alpha = 1/100, epsilon = 0.3, num_episodes = 50, num_steps = 100)
 
