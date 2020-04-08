@@ -42,13 +42,10 @@ A patient with need *n* has to be seen by a doctor of type *n* or above.
 For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *only once the patient has gone through the queue*.
 
 ## TODO
-### On hold
-- Implement some learning algorithms, *preferrably with reason* (Todor)
 ### Current
 - Find one or more featurisations to try out (Use log) (Auguste) 
-- Find a way to measure the model's performance (Auguste)
- -> Compare how the learner behaves as parameters are changed (e.g. doctor of higher type finishes faster -> does the learner give them more low priority patients?)
 - Troubleshoot using simple cases
+  - Tweak rewards? (Todor)
 - Report (Isabel, Auguste, Yongxin)
-#### Technical
 - Look for different q-function approximations (RBFs? Monomials)? (Todor)
+- Implement Q-learning algorithm (Auguste)
