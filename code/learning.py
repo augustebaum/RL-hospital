@@ -9,6 +9,7 @@ This code has been adapted from code provided by Luke Dickens on the UCL module 
 import matplotlib.pyplot as plt
 import numpy as np
 import random
+from math import *
 
 ##### FEATURISATIONS ##########################
 def feature_1(env):
@@ -72,7 +73,7 @@ def feature_4(env):
     # wait time added should be adjusted when changing the number of steps in the model
     for q in env.queues:
         q_ = [ p.need for p in q ]
-        wait_time = sum([p.wait for p in q])/100
+        wait_time = sum([p.wait for p in q])/100 # log(sum([p.wait for p in q]) + e)
         res.append(wait_time)
         for i in env.actions:
             res.append(q_.count(i))
@@ -106,7 +107,8 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
     t_list = []
     # used for the graphs at the end
     #total_reward_per_step = np.zeros(num_steps)
-    total_reward_per_episode = np.zeros(num_episodes)
+    #total_reward_per_episode = np.zeros(num_episodes)
+    total_reward_per_episode = [-inf for _ in range(num_episodes)]
     #timeline_steps = [i for i in range(num_steps)]
     #timeline_episodes = [i for i in range(num_episodes)]
     
@@ -117,7 +119,10 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
     
     # Q_weights is the weight matrix
     s = featurisation(env)
-    Q_weights = np.zeros((num_actions, len(s)))
+    Q_weights = np.ones((num_actions, len(s)))
+    Q_optimal_weights = Q_weights
+    
+    #### trying to see if there is a best weight matrix
         
     # Apply Sarsa algorithm
     for episode in range(num_episodes):
@@ -146,12 +151,24 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
             a = a_
             # print("\nStep: {}\n".format(step))
             # env.pretty_print()
+        
         # now add to the total reward from the episode to the list
         total_reward_per_episode[episode] = reward
        # print("\nEpisode: {}\n".format(step))
+       
+       ####################################
+       # created a variable Q_optimal_weights 
+       # i.e. this is is the weight matrix linked with the highest episodic reward
+        calculate_Optimal_weights = True
+        if calculate_Optimal_weights:
+            if max(total_reward_per_episode) == total_reward_per_episode[episode]:
+                #print("This is for epsilon ->{}".format(epsilon))
+                Q_optimal_weights = Q_weights
+                #print("Optimal weights changed in episode {}; reward -> {}\n".format(episode, total_reward_per_episode[episode]))
+        ####################################
         
     # return the final weight matrix and the list with episodic rewards
-    return t_list, Q_weights, total_reward_per_episode
+    return t_list, Q_optimal_weights, total_reward_per_episode
 
 
 def sarsa_update(qweights, s, a, r, s_, a_, gamma, alpha):
@@ -192,7 +209,12 @@ def state_action_value_function_approx(s, a, qweights):
     -------
     the q_value approximation for the state and action input
     """
-    return np.dot(s, qweights[a])
+    method = "Dot product"
+    
+    if method == "Dot product":
+        return np.dot(s, qweights[a])
+    elif method == "Fourier":
+        pass
 
 ##### POLICIES ################################  
 def sample_from_epsilon_greedy(s, qweights, epsilon):

@@ -10,17 +10,20 @@ doctors = [Doctor(0, 0.1),
            Doctor(3, 0.1),
            Doctor(4, 0.1),
            Doctor(5, 0.1),
-           Doctor(6, 0.1),
-           Doctor(7, 0.1),
-           Doctor(8, 0.9)]
-hospital = Hospital(20, doctors, [1, 1, 1, 1, 1, 1, 1, 1, 1])
+           Doctor(6, 1)]
+# watchout the capacity below might be changed
+hospital = Hospital(20, doctors, [10000, 1, 1, 1, 1, 1, 1])
 
 feature = feature_1
+number_steps = 100
+number_episodes = 300
 # alpha was previously 1/50, now is calculated as 1/num_steps
 
-t_list, Q_weights, total_reward_per_episode, timeline_episodes = sarsa(hospital, featurisation = feature, gamma = 0.85, alpha = 1/100, epsilon = 0.3, num_episodes = 50, num_steps = 100)
+t_list, Q_weights, total_reward_per_episode = sarsa(hospital, featurisation = feature, gamma = 0.9, alpha = None, epsilon = 0.1, num_episodes = number_episodes, num_steps = number_steps)
 
-props = simulate(hospital, feature, Q_weights, steps = 10000, plot = True)
+props = simulate(hospital, feature, Q_weights, steps = number_steps, plot = True)
 print(feature_1(hospital))
 hospital.pretty_print()
 print(props)
+
+#### will print the simulation rewards against random rewards

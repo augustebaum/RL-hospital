@@ -33,9 +33,9 @@ def main():
         av_r_sim += np.average(total_reward_per_episode)
         av_r += np.average(total_reward_per_episode_r)
     print("\nThe average reward after {} simulations is {}".format(n, av_r_sim/n))
-    print("\nThe average reward after {} random simulations is {}".format(n, av_r))
+    print("\nThe average reward after {} random simulations is {}".format(n, av_r/n))
 
-def simulation1(featurisation = feature_1, num_episodes = 100, num_steps = 100, gamma = 1, alpha = None, epsilon = 0.1):
+def simulation1(featurisation = feature_1, num_episodes = 300, num_steps = 100, gamma = 0.85, alpha = None, epsilon = 0.1):
     """
     Two doctors, one of type 0 and one of type 1, and only patients of type 1.
     The expected result is that all patients are dispatched to queue 1.
@@ -44,13 +44,19 @@ def simulation1(featurisation = feature_1, num_episodes = 100, num_steps = 100, 
 
     # One of level 0 that has probability of being done of 0.2
     # One of level 1 that has probability of being done of 0.1
-    doctors = [Doctor(0, 0.6), Doctor(1, 0.4), Doctor(2, 0.2)]
+    doctors = [Doctor(0, 0.1),
+           Doctor(1, 0.1),
+           Doctor(2, 0.1),
+           Doctor(3, 0.1),
+           Doctor(4, 0.1),
+           Doctor(5, 0.1),
+           Doctor(6, 0.6)]
+    hospital = Hospital(20, doctors, [1, 1, 1, 1, 1, 1, 1])
     
     # Hospital with occupancy of 20 people 
     # Patient of type 1 5000 times more likely than type 0
     # the list holds to the relative probabilities of patients occurring 
     # the index of the list's element corresponds to the patient's type
-    hospital = Hospital(20, doctors, [1, 1, 1])
     
     max_reward = - (hospital.max_average_reward() * num_steps)
 
