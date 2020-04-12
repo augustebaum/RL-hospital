@@ -49,8 +49,7 @@ class Hospital(object):
         reward = 0
 
         for queue in self.queues:
-            for patient in queue: 
-                patient.update()
+            for patient in queue: patient.update()
 
         self.queues[action].append(self.newPatient)
 
@@ -75,18 +74,21 @@ class Hospital(object):
                 d.busy = queue.pop(0)
                 if not(d.can_treat(d.busy.need)):
                 # if patient can't be treated
-                    reward -= 10*(d.busy.wait + 1)*(d.busy.need + 1)
+                    # reward -= 10*(d.busy.wait + 1)*(d.busy.need + 1)
+                    reward -= 100*(d.busy.wait + 1)*d.busy.need
                     d.busy = None
                 else:
-                    reward -= (d.busy.wait + 1)*(d.busy.need + 1)
+                    reward -= (d.busy.wait + 1)*d.busy.need
 
-        # More people is bad
-        reward -= sum(map(len, self.queues))
+        # More people is bad, so is waiting a long time
+        # reward -= sum(map(len, self.queues))
+        for q in self.queues:
+            reward -= sum([ (p.wait + 1)*(p.need + 1) for p in q])
 
         if sum(map(len, self.queues)) >= self.occupancy:
         # if hospital is full
             # reward -= (sum(map(len, self.queues)) - self.occupancy)
-            reward -= 1000
+            reward -= 100
             self.isTerminal = True
 
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
@@ -100,7 +102,6 @@ class Hospital(object):
         arrival_probs = np.array(self.needs) / sum(self.needs)
         return np.dot(need_list, arrival_probs)
         
-
     def simulate(self, policy, limit = 30):
         s = self
         for _ in range(limit):

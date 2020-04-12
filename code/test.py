@@ -2,6 +2,8 @@ from hospital import *
 from simulation import *
 from learning import *
 import numpy as np
+from matplotlib import rc
+rc('text', usetex=True)
 import matplotlib.pyplot as plt
 
 doctors = [Doctor(0, 0.1),
@@ -13,14 +15,20 @@ doctors = [Doctor(0, 0.1),
            Doctor(6, 0.1),
            Doctor(7, 0.1),
            Doctor(8, 0.9)]
-hospital = Hospital(20, doctors, [1, 1, 1, 1, 1, 1, 1, 1, 1])
+hospital = Hospital(2000, doctors, [1, 1, 1, 1, 1, 1, 1, 1, 1])
 
-feature = feature_1
-# alpha was previously 1/50, now is calculated as 1/num_steps
+# doctors = [Doctor(0, 0.5),
+           # Doctor(1, 0.5)]
+# hospital = Hospital(20, doctors, [1, 1])
 
-t_list, Q_weights, total_reward_per_episode, timeline_episodes = sarsa(hospital, featurisation = feature, gamma = 0.85, alpha = 1/100, epsilon = 0.3, num_episodes = 50, num_steps = 100)
+feature = feature_5
 
-props = simulate(hospital, feature, Q_weights, steps = 10000, plot = True)
-print(feature_1(hospital))
+t_list, Q_weights, total_reward_per_episode = ql(hospital, featurisation = feature, alpha = None, gamma = 0.85, epsilon = 0.9, num_episodes = 25, num_steps = 500)
+
+props = simulate(hospital, feature, Q_weights, steps = 1000, epsilon = 0.9, plot = "hist")
+print(feature(hospital))
 hospital.pretty_print()
 print(props)
+
+simulate_naive(hospital, plot = 'hist')
+hospital.pretty_print()

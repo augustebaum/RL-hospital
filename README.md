@@ -42,10 +42,12 @@ A patient with need *n* has to be seen by a doctor of type *n* or above.
 For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *only once the patient has gone through the queue*.
 
 ## TODO
+### On hold
+- Look for different q-function approximations (RBFs? Monomials)? (Todor)
 ### Current
-- Find one or more featurisations to try out (Use log) (Auguste) 
+- Find more featurisations
 - Troubleshoot using simple cases
   - Tweak rewards? (Todor)
+- Change penalty system for misallocations (Auguste)
+- Positive rewards for curing people (Auguste)
 - Report (Isabel, Auguste, Yongxin)
-- Look for different q-function approximations (RBFs? Monomials)? (Todor)
-- Implement Q-learning algorithm (Auguste)
