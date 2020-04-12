@@ -1,6 +1,7 @@
 import random
 from scipy.stats import binom, expon
 import numpy as np
+from math import *
 
 class Hospital(object):
     """Defines a hospital with doctors of different types"""
@@ -70,15 +71,24 @@ class Hospital(object):
             #            reward += 1
             # If you get a patient you can't treat, send them away and try again immediately, as many times as possible
             while not(d.busy) and self.queues[d.type]:
+                # cycle_counter mb
                 queue = self.queues[d.type]
                 d.busy = queue.pop(0)
                 if not(d.can_treat(d.busy.need)):
                 # if patient can't be treated
-                    # reward -= 10*(d.busy.wait + 1)*(d.busy.need + 1)
-                    reward -= 100*(d.busy.wait + 1)*d.busy.need
+                    #if d.busy.wait == 0:
+                     #   reward -= 10  * (d.busy.need + 1)
+                    #reward -= exp(d.busy.need - d.type) *  (d.busy.wait + 1)
+                    reward -= (d.busy.need - d.type) * log(d.busy.wait + 3)
+                    #reward -= 100 + d.busy.wait
+                    #reward -= 10*(d.busy.wait + 1)*(d.busy.need + 1)
+                    #reward -= d.busy.need + 1
                     d.busy = None
                 else:
-                    reward -= (d.busy.wait + 1)*d.busy.need
+                    #reward -= (d.busy.wait + 1)*(d.busy.need + 1)
+                    #reward += (d.busy.need + 1) * 10
+                    #reward += 1_000_000
+                    pass
 
         # More people is bad, so is waiting a long time
         # reward -= sum(map(len, self.queues))
@@ -88,7 +98,7 @@ class Hospital(object):
         if sum(map(len, self.queues)) >= self.occupancy:
         # if hospital is full
             # reward -= (sum(map(len, self.queues)) - self.occupancy)
-            reward -= 100
+            # reward -= 100
             self.isTerminal = True
 
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
