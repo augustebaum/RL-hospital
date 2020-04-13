@@ -16,29 +16,21 @@ from math import *
 def feature_1(env):
     """A representation of the hospital"""
     res = []
-    # Average number of patients waiting in the different queues
     res.append(sum(map(len, env.queues))/len(env.queues))    
-    # Whether or not a given queue has more or fewer patients with a certain need than a threshold
     for q in env.queues:
         q = [ p.need for p in q ]             
         for i in env.actions:
             num_patients = q.count(i)
-            if num_patients < 1:
-                res.append(0)
-            elif num_patients <= 1:
-                res.append(1)
-            elif num_patients <= 3:
-                res.append(2)
-            else:
-                res.append(3)
+            if num_patients == 0: res.append(0)
+            elif num_patients == 1: res.append(1)
+            elif num_patients <= 3: res.append(2)
+            else: res.append(3)
     return np.array(res)
 
 def feature_2(env):
     """A representation of the hospital"""
     res = []
-    # Average number of patients waiting in the different queues
     res.append(sum(map(len, env.queues))/len(env.queues))    
-    # Whether or not a given queue has more or fewer patients with a certain need than a threshold
     for q in env.queues:
         q = [ p.need for p in q ]             
         for i in env.actions:
@@ -82,6 +74,26 @@ def feature_4(env):
 
 def feature_5(env):
     """A representation of the hospital
+
+       The first element is the need of the newly arrived patient.
+       The second element is the total number of patients in all the queues.
+       The following elements include average need and waiting time in 
+       each queue.
+    """
+    res = []
+    # Average number of patients waiting in the different queues
+    res.append(sum(map(len, env.queues)) / len(env.queues))    
+    # adds waiting time in the queue in the feature along with the number of patients
+    # wait time added should be adjusted when changing the number of steps in the model
+    for q in env.queues:
+        # Something about the length of the queue perhaps?
+        res.append(np.mean([ p.need for p in q ]) if q else 0)
+        res.append(np.mean([ p.wait for p in q ]) if q else 0)
+    # Prepend one-hot vector with new patient's need
+    return np.concatenate((np.array(np.arange(len(env.actions)) == env.newPatient.need, dtype=int), np.array(res)))
+
+def feature_6(env):
+    """A representation of the hospital
        The first element is the need of the newly arrived patient.
        The second element is the total number of patients in all the queues.
        The following elements include average need and waiting time in 
@@ -89,7 +101,7 @@ def feature_5(env):
     """
     res = []
     # Need of new patient
-    res.append(env.newPatient.need)
+    # res.append(env.newPatient.need)
     # Average number of patients waiting in the different queues
     res.append(sum(map(len, env.queues)) / len(env.queues))    
     # adds waiting time in the queue in the feature along with the number of patients
@@ -99,6 +111,39 @@ def feature_5(env):
         res.append(np.mean([ p.need for p in q ]) if q else 0)
         res.append(np.mean([ p.wait for p in q ]) if q else 0)
     return np.array(res)
+
+def feature_7(env):
+    """A representation of the hospital
+       A concatentation of:
+       A one-hot vector for the need of the new patient
+       A one-hot vector for the average wait
+       One one-hot vector for the number of patients with a given need per queue
+    """
+    num_actions = len(env.actions)
+    # Need of new patient
+    res = np.array(np.arange(num_actions) == env.newPatient.need, dtype=int)
+    # Average waiting time
+    if sum(map(len, env.queues)) == 0:
+        waits = 0
+    else:
+        # Not too sure about this one -- especially the boundary
+        # waits = 1 if np.mean([ p.wait for p in np.concatenate(env.queues) ]) > num_actions*len(env.doctors) else 0
+        waits = np.mean([ p.wait for p in np.concatenate(env.queues) ])
+        if waits < num_actions: waits = 0
+        elif waits < 2 * num_actions: waits = 1
+        else: waits = 2
+    waits = np.array(np.arange(3) == waits, dtype = int)
+    # Number of people of given type in each queue
+    types = np.array([])
+    for i, q in enumerate(env.queues):
+        q = [ p.need for p in q ]
+        if q.count(i) < num_actions: c = 0
+        elif q.count(i) < 2*num_actions: c = 1
+        else: c = 2
+        # types.extend( q.count(i) for i in range(num_actions) )
+        # types = np.array( np.array(types) > num_actions, dtype = int )
+        types = np.concatenate(( types, np.array(np.arange(3) == c, dtype = int)))
+    return np.concatenate((res, waits, types))
 
 ###### LEARNING ALGORITHMS ##################
 def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
@@ -129,11 +174,9 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
     # used for the graphs at the end
     #total_reward_per_step = np.zeros(num_steps)
     #total_reward_per_episode = np.zeros(num_episodes)
-    total_reward_per_episode = [-inf for _ in range(num_episodes)]
+    total_reward_per_episode = [-np.inf for _ in range(num_episodes)]
     #timeline_steps = [i for i in range(num_steps)]
     #timeline_episodes = [i for i in range(num_episodes)]
-    
-    
     
     # the number of possible doctor assignments for a patient
     num_actions = len(env.actions)
@@ -153,7 +196,7 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
         # reset the hospital object for the next episode
         env.reset()
         s = featurisation(env)
-        a = sample_from_epsilon_greedy(s, Q_weights, epsilon)
+        a = epsilon_greedy(s, Q_weights, epsilon)
        
         for step in range(num_steps):
             # finish the current episode if the max occupancy is reached
@@ -164,7 +207,7 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
             step_reward = env.next_step(a)
             reward += step_reward
             s_ = featurisation(env)
-            a_ = sample_from_epsilon_greedy(s_, Q_weights, epsilon)
+            a_ = epsilon_greedy(s_, Q_weights, epsilon)
             
             Q_weights = sarsa_update(Q_weights, s, a, step_reward, s_, a_, gamma, alpha)
             
@@ -175,11 +218,11 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
         
         # now add to the total reward from the episode to the list
         total_reward_per_episode[episode] = reward
-       # print("\nEpisode: {}\n".format(step))
-       
-       ####################################
-       # created a variable Q_optimal_weights 
-       # i.e. this is is the weight matrix linked with the highest episodic reward
+        # print("\nEpisode: {}\n".format(step))
+        
+        ####################################
+        # created a variable Q_optimal_weights 
+        # i.e. this is is the weight matrix linked with the highest episodic reward
         calculate_Optimal_weights = True
         if calculate_Optimal_weights:
             if max(total_reward_per_episode) == total_reward_per_episode[episode]:
@@ -203,10 +246,9 @@ def sarsa_update(qweights, s, a, r, s_, a_, gamma, alpha):
     returns
     -------
     """
-    q_current = state_action_value_function_approx(s, a, qweights)
-    q_next = state_action_value_function_approx(s_, a_, qweights)
-    DeltaW = alpha*(r +gamma*q_next - q_current)*s
-    qweights[a] += DeltaW
+    q_current = q_approx(s, a, qweights)
+    q_next = q_approx(s_, a_, qweights)
+    qweights[a] += alpha*(r + gamma*q_next - q_current)*s
     return qweights
 
 def ql(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
@@ -245,15 +287,15 @@ def ql(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
     # Q_weights is the weight matrix
     s = featurisation(env)
     Q_weights = np.zeros((num_actions, len(s)))
-        
+    Q_optimal_weights = Q_weights
+
     for episode in range(num_episodes):
-        
         # variable to follow the reward evolution after each step
         reward = 0
         # reset the hospital object for the next episode
         env.reset()
         s = featurisation(env)
-        a = sample_from_epsilon_greedy(s, Q_weights, epsilon)
+        a = epsilon_greedy(s, Q_weights, epsilon)
        
         for step in range(num_steps):
             # finish the current episode if the max occupancy is reached
@@ -261,7 +303,7 @@ def ql(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
                 t_list.append("Episode " + str(episode) + " finished at step " + str(step))
                 break
             
-            a = sample_from_epsilon_greedy(s, Q_weights, epsilon)
+            a = epsilon_greedy(s, Q_weights, epsilon)
             step_reward = env.next_step(a)
             reward += step_reward
             s_ = featurisation(env)
@@ -272,25 +314,35 @@ def ql(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
         # now add to the total reward from the episode to the list
         total_reward_per_episode[episode] = reward
         
-    return t_list, Q_weights, total_reward_per_episode
+        ####################################
+        # created a variable Q_optimal_weights 
+        # i.e. this is is the weight matrix linked with the highest episodic reward
+        calculate_Optimal_weights = True
+        if calculate_Optimal_weights:
+            if max(total_reward_per_episode) == total_reward_per_episode[episode]:
+                #print("This is for epsilon ->{}".format(epsilon))
+                Q_optimal_weights = Q_weights
+                #print("Optimal weights changed in episode {}; reward -> {}\n".format(episode, total_reward_per_episode[episode]))
+        ####################################
+
+    return t_list, Q_optimal_weights, total_reward_per_episode
 
 def ql_update(qweights, s, a, r, s_, gamma, alpha):
     """
     Updates the qweights following the q-learning method for function approximation.
+    Inputs
     ----------
     s    - is the 1d numpy array of the state feature
     a        - is the index of the action
     qweights - a list of weight vectors, one per action
-        qweights[i] is the weights for the ith action    
 
-    returns
+    Returns
     -------
     Updated qweights
     """
-    q_current = state_action_value_function_approx(s, a, qweights)
-    q_next = np.argmax([ state_action_value_function_approx(s_, a_, qweights) for a_ in range(len(qweights)) ])
-    DeltaW = alpha*(r +gamma*q_next - q_current)*s
-    qweights[a] += DeltaW
+    q_current = q_approx(s, a, qweights)
+    q_next = np.argmax([ q_approx(s_, a_, qweights) for a_ in range(len(qweights)) ])
+    qweights[a] += alpha*(r +gamma*q_next - q_current)*s
     return qweights
 
 ###########################################################
@@ -299,7 +351,7 @@ def ql_update(qweights, s, a, r, s_, gamma, alpha):
 
 
 # Value-function approximation
-def state_action_value_function_approx(s, a, qweights):
+def q_approx(s, a, qweights):
     """
     parameters
     ----------
@@ -320,7 +372,7 @@ def state_action_value_function_approx(s, a, qweights):
         pass
 
 ##### POLICIES ################################  
-def sample_from_epsilon_greedy(s, qweights, epsilon):
+def epsilon_greedy(s, qweights, epsilon):
     """
     A method to sample from the epsilon greedy policy associated with a
     set of q_weights which captures a linear state-action value-function
@@ -328,7 +380,7 @@ def sample_from_epsilon_greedy(s, qweights, epsilon):
     parameters
     ----------
     s - is the 1d numpy array of the state feature
-    a - is the index of the action
+    epsilon - probability of acting randomly
     qweights - a list of weight vectors, one per action
         qweights[i] is the weights for the ith action    
 
@@ -336,18 +388,10 @@ def sample_from_epsilon_greedy(s, qweights, epsilon):
     -------
     decision taken using the epsilon-greedy policy 
     """
-    qvalues = np.empty(qweights.shape[0])
-    for a in range(qweights.shape[0]):
-        qvalues[a] = state_action_value_function_approx(s, a, qweights)
     if np.random.random() > epsilon:
-      return np.argmax(qvalues)
-    return np.random.randint(qvalues.shape[0])
-
-# This is the same as epsilon greedy with epsilon = 1
-def policy_random(qweights):
-    """Sample from the random policy"""
-    # Return one of the possible actions with probability 1/(number of possible actions)
-    return random.choice(range(qweights.shape[0]))
+        return np.argmax(
+            [ q_approx(s, a, qweights) for a in range(len(qweights)) ])
+    return np.random.randint(len(qweights))
 
 # Can I formulate this in terms of weights?
 def policy_naive(env):
@@ -365,23 +409,24 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
     env: a hospital instance
     steps: how many steps to simulate
     featurisation: outputs a representation for a given hospital state
-    q_weights: a set of weights which was learned; these should be based
-        on learning done using the above featurisation
+    q_weights: a set of weights which was learned; these should be based on learning done using the above featurisation
     epsilon: probability of choosing action randomly
-    plot: What kind of plot (if any) should be produced: "hist" or "map"
-        (stacked bar plot or heatmap)
+    plot: What kind of plot (if any) should be produced: "hist" or "map" (stacked bar plot or heatmap)
     """
     env.reset()
     N = len(env.actions)
     props = np.zeros([N, N])
-    for _ in range(steps):
+    rewards = np.zeros(steps)
+
+    for i in range(steps):
         s = featurisation(env)
-        a = sample_from_epsilon_greedy(s, q_weights, epsilon)
+        a = epsilon_greedy(s, q_weights, epsilon)
         props[env.newPatient.need, a] += 1
-        env.next_step(a)
+        rewards[i] = env.next_step(a)
     
     props = props/steps*100
     
+    # Would be nice to give some kind of list as input to give all the plots, not just one
     if plot == "hist":
         fig, ax = plt.subplots()
         cumsum = props[0,:]
@@ -396,8 +441,6 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
         plt.xticks(range(N), ['Queue '+str(i) for i in range(N)] )
         plt.yticks(np.arange(0, 101, 10))
         plt.legend(tuple( p[i][0] for i in range(N) ), tuple('Type '+str(i) for i in range(N)))
-
-        plt.show()
 
     elif plot == "map":
         fig, ax = plt.subplots()
@@ -421,9 +464,9 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
         
         ax.set_title("Proportion of each patient type by queue")
         fig.tight_layout()
-        plt.show()
 
-    return props
+    plt.show()
+    return props, rewards
 
 def simulate_naive(env, steps = 100, plot = False):
     """ 
@@ -439,11 +482,12 @@ def simulate_naive(env, steps = 100, plot = False):
     env.reset()
     N = len(env.actions)
     props = np.zeros([N, N])
-    for _ in range(steps):
+    rewards = np.zeros(steps)
+    for i in range(steps):
         # s = featurisation(env)
         a = policy_naive(env)
         props[env.newPatient.need, a] += 1
-        env.next_step(a)
+        rewards[i] = env.next_step(a)
 
     props = props/steps*100
     
@@ -461,8 +505,7 @@ def simulate_naive(env, steps = 100, plot = False):
         plt.xticks(range(N), ['Queue '+str(i) for i in range(N)] )
         plt.yticks(np.arange(0, 101, 10))
         plt.legend(tuple( p[i][0] for i in range(N) ), tuple('Type '+str(i) for i in range(N)))
-
-        plt.show()
+        fig.tight_layout()
 
     elif plot == "map":
         fig, ax = plt.subplots()
@@ -486,9 +529,7 @@ def simulate_naive(env, steps = 100, plot = False):
         
         ax.set_title("Proportion of each patient type by queue")
         fig.tight_layout()
-        plt.show()
 
-    return props
+    plt.show()
 
-
-
+    return props, rewards
