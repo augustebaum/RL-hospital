@@ -48,60 +48,44 @@ class Hospital(object):
         action - the current action to be taken
         """
         reward = 0
+        s = self
 
-        for queue in self.queues:
+        # Increment waits
+        for queue in s.queues:
             for patient in queue: patient.update()
 
-        self.queues[action].append(self.newPatient)
+        s.queues[action].append(s.newPatient)
+        # If the patient was misallocated, immediately issue penalty
+        if s.newPatient.need > action:
+            reward -= 10*s.newPatient.need
 
-        for d in self.doctors:
+        for d in s.doctors:
             d.update()
             # If you get a patient you can't treat, send them away and become free
-            #if not(d.busy):
-            #    queue = self.queues[d.type]
-            #    # if queue is not empty
-            #    if queue:
-            #    # If free and queue not empty
-            #        d.busy = queue.pop(0)
-            #        if not(d.can_treat(d.busy.need)):
-            #            reward -= d.busy.need
-            #            # What do you do with the failed patient? Right now they're just chucked away
-            #            d.busy = None
-            #        else:
-            #            reward += 1
-            # If you get a patient you can't treat, send them away and try again immediately, as many times as possible
-            while not(d.busy) and self.queues[d.type]:
-                # cycle_counter mb
-                queue = self.queues[d.type]
-                d.busy = queue.pop(0)
-                if not(d.can_treat(d.busy.need)):
-                # if patient can't be treated
-                    #if d.busy.wait == 0:
-                     #   reward -= 10  * (d.busy.need + 1)
-                    #reward -= exp(d.busy.need - d.type) *  (d.busy.wait + 1)
-                    reward -= (d.busy.need - d.type) * log(d.busy.wait + 3)
-                    #reward -= 100 + d.busy.wait
-                    #reward -= 10*(d.busy.wait + 1)*(d.busy.need + 1)
-                    #reward -= d.busy.need + 1
-                    d.busy = None
-                else:
-                    #reward -= (d.busy.wait + 1)*(d.busy.need + 1)
-                    #reward += (d.busy.need + 1) * 10
-                    #reward += 1_000_000
-                    pass
+            if not(d.busy):
+               queue = s.queues[d.type]
+               # if queue is not empty
+               if queue:
+               # If free and queue not empty
+                   d.busy = queue.pop(0)
+                   reward -= d.busy.need*d.busy.wait
+                   if not(d.can_treat(d.busy.need)):
+                       d.busy = None
+                   else:
+                       reward -= d.busy.need
 
         # More people is bad, so is waiting a long time
-        # reward -= sum(map(len, self.queues))
-        for q in self.queues:
-            reward -= sum([ (p.wait + 1)*(p.need + 1) for p in q])
+        # reward -= sum(map(len, s.queues))
+        # for q in s.queues:
+            # reward -= sum([ (p.wait + 1)*p.need for p in q])
 
-        if sum(map(len, self.queues)) >= self.occupancy:
+        if sum(map(len, s.queues)) >= s.occupancy:
         # if hospital is full
-            # reward -= (sum(map(len, self.queues)) - self.occupancy)
+            # reward -= (sum(map(len, s.queues)) - s.occupancy)
             # reward -= 100
-            self.isTerminal = True
+            s.isTerminal = True
 
-        self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
+        s.newPatient = Patient(need = random.choices(s.actions, weights = s.needs)[0])
 
         return reward
     
@@ -111,12 +95,6 @@ class Hospital(object):
         need_list = np.array(self.actions) + 1
         arrival_probs = np.array(self.needs) / sum(self.needs)
         return np.dot(need_list, arrival_probs)
-        
-    def simulate(self, policy, limit = 30):
-        s = self
-        for _ in range(limit):
-            print(s.feature())
-            s.update(policy)
 
     def reset(self):
         self.queues = [ [] for _ in range(len(self.actions)) ]
