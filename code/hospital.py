@@ -42,13 +42,14 @@ class Hospital(object):
         # a list that will keep the cured patients
         self.cured = []
 
-    def next_step(self, action):
+    def next_step(self, action, checkBefore = True):
         """
         Update the internal state according to an action and get the reward
 
         Inputs:
         ----------
         action - the current action to be taken
+        checkBefore - Whether misallocation is penalized at the beginning (default) or end of the queue
         """
         reward = 0
         s = self
@@ -61,7 +62,7 @@ class Hospital(object):
         s.queues[action].append(s.newPatient)
         
         # If the patient was misallocated, immediately issue penalty
-        if s.newPatient.need > action:
+        if checkBefore and s.newPatient.need > action:
             reward -= 10*s.newPatient.need
 
         for d in s.doctors:
@@ -81,7 +82,8 @@ class Hospital(object):
                    # Here we can add a further penalty because of the time the patient has waited,
                    # but we can also not do this
                    if not(d.can_treat(d.busy.need)):
-                       #reward -= d.busy.need * 10
+                       if not(checkBefore):
+                           reward -= d.busy.need * 10
                        d.busy = None
                    # below is the reward if the doctor CAN treat the current patient he has received
                    # even though the patient will perhaps be treated after some time (according to 
