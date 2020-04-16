@@ -6,7 +6,7 @@ from matplotlib import rc
 import matplotlib.pyplot as plt
 
 def main():
-    n = 2
+    n = 1
     # holds the average reward of each simulation
     av_r_sim = np.zeros(n)
     # holds the average of each random action simulations
@@ -14,7 +14,7 @@ def main():
     # n is the number of cycles (i.e. simulations run)
     plt.figure()
     for i in range(n):
-        (t_list, Q_weights, total_reward_per_episode), max_rewards = simulation1(num_episodes = 20)
+        (t_list, Q_weights, total_reward_per_episode), max_rewards = simulation1()
         
         # results from random action below, used only for the plot -> nothing else printed
         (t_list_r, Q_weights_r, total_reward_per_episode_r), max_rewards = simulation1(featurisation = feature_5, epsilon = 1, num_episodes = 20)
@@ -39,7 +39,7 @@ def main():
     print("\nThe average reward after {} simulations is {}".format(n, av_r_sim/n))
     print("\nThe average reward after {} random simulations is {}".format(n, av_r/n))
 
-def simulation1(featurisation = feature_1, num_episodes = 300, num_steps = 100, gamma = 0.85, alpha = None, epsilon = 0.1):
+def simulation1(featurisation = feature_7, num_episodes = 300, num_steps = 100, gamma = 0.85, alpha = None, epsilon = 0.1):
     """
     Two doctors, one of type 0 and one of type 1, and only patients of type 1.
     The expected result is that all patients are dispatched to queue 1.
@@ -48,13 +48,13 @@ def simulation1(featurisation = feature_1, num_episodes = 300, num_steps = 100, 
 
     # One of level 0 that has probability of being done of 0.2
     # One of level 1 that has probability of being done of 0.1
-    doctors = [Doctor(0, 0.1),
-               Doctor(1, 0.1),
-               Doctor(2, 0.1),
-               Doctor(3, 0.1),
-               Doctor(4, 0.1),
-               Doctor(5, 0.1),
-               Doctor(6, 0.6)]
+    doctors = [Doctor(0, 1),
+               Doctor(1, 1),
+               Doctor(2, 1),
+               Doctor(3, 1),
+               Doctor(4, 1),
+               Doctor(5, 1),
+               Doctor(6, 0.1)]
     hospital = Hospital(20, doctors, [1, 1, 1, 1, 1, 1, 1])
     
     # Hospital with occupancy of 20 people 

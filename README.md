@@ -45,9 +45,43 @@ For example, a patient with need 0 can be treated by any doctor, but a patient w
 ### On hold
 - Look for different q-function approximations (RBFs? Monomials)? (Todor)
 ### Current
-- Find more featurisations
-- Troubleshoot using simple cases
-  - Tweak rewards? (Todor)
-- Change penalty system for misallocations (Auguste)
-- Positive rewards for curing people (Auguste)
-- Report (Isabel, Auguste, Yongxin)
+- Find more featurisations (Todor)
+- Merge branches, add possibility to have rewards at the beginning or end in next\_step (Auguste)
+- Work on hospital with 2 doctors (fixed featurisation and rewards, change rates) (Isabel and Yongxin)
+- Report:
+  - Shorten introduction (Auguste)
+  - Describe experiments (what is being compared, what is expected)
+    - Experiment 1 (Todor)
+
+## Report Plan
+1.
+Intro:
+- Background
+- Describe the system
+- Discuss details (e.g.
+when the rewards are applied)
+- Introduce research (which algorithms, which experiments, what was compared)
+- Introduce challenges (rewards given at the end)
+2.
+Results
+- Experiment 1:
+ - Fixed featurisation
+ - Fixed reward system
+ - Doctors = [0, 1]
+ - Compare effect of having more or less type 1 patients
+- Experiment 2:
+ - 7 doctor types
+ - Compare featurisation (one-hot and normal)
+3.
+Discussion
+- Which featurisations do best;
+- Which algorithms do best?
+- In what situations we can expect to find the optimal policy
+- What challenges were there? How did we solve/not solve them?
+- Global comparison/applicability
+4.
+Conclusion/Opening
+- How did it go compared to expectations?
+- What could be done better?
+  - Further function approximation? (RBFs, monomials)
+  - "Marking scheme" (dividing reward into several parts)

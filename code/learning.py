@@ -24,7 +24,10 @@ def feature_1(env):
             if num_patients == 0: res.append(0)
             elif num_patients == 1: res.append(1)
             elif num_patients <= 3: res.append(2)
-            else: res.append(3)
+            elif num_patients <= 6: res.append(3)
+            elif num_patients <= 10: res.append(4)
+            elif num_patients <= 15: res.append(5)
+            else: res.append(6)
     return np.array(res)
 
 def feature_2(env):
@@ -228,7 +231,11 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
             if max(total_reward_per_episode) == total_reward_per_episode[episode]:
                 #print("This is for epsilon ->{}".format(epsilon))
                 Q_optimal_weights = Q_weights
-                #print("Optimal weights changed in episode {}; reward -> {}\n".format(episode, total_reward_per_episode[episode]))
+                print("Optimal weights changed in episode {}; reward -> {}\n".format(episode, total_reward_per_episode[episode]))
+                if total_reward_per_episode[episode] > -500:
+                    # used for testing
+                    #env.pretty_print()
+                    pass
         ####################################
         
     # return the final weight matrix and the list with episodic rewards
@@ -468,9 +475,21 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
         
         ax.set_title("Proportion of each patient type by queue")
         fig.tight_layout()
+    # some extra metrics to estimate the performance of the algorithm
+    # number of cured patients
+    n_cured = len(env.cured)
+    
+    # will show number of people cured by type
+    cured_dict = dict()  
+    cured_types = [patient.need for patient in env.cured]    
+    
+    for i in range(len(env.queues)):
+        cured_dict["Type " + str(i)] = cured_types.count(i)
+    # combined waiting time for the cured patients
+    time_waited_total = sum(patient.wait for patient in env.cured)
 
     plt.show()
-    return props, rewards
+    return props, rewards, n_cured, time_waited_total, cured_dict
 
 def simulate_naive(env, steps = 100, plot = False):
     """ 
