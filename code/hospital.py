@@ -38,6 +38,9 @@ class Hospital(object):
 
         # Initialise patient with a random need
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
+        
+        # a list that will keep the cured patients
+        self.cured = []
 
     def next_step(self, action):
         """
@@ -50,11 +53,13 @@ class Hospital(object):
         reward = 0
         s = self
 
-        # Increment waits
+        # Increment waits for each patient
         for queue in s.queues:
             for patient in queue: patient.update()
-
+        
+        # assign the next patient to one of the queues given the current action
         s.queues[action].append(s.newPatient)
+        
         # If the patient was misallocated, immediately issue penalty
         if s.newPatient.need > action:
             reward -= 10*s.newPatient.need
@@ -64,27 +69,44 @@ class Hospital(object):
             # If you get a patient you can't treat, send them away and become free
             if not(d.busy):
                queue = s.queues[d.type]
-               # if queue is not empty
+               
+               # if queue is not empty take the first person and let him visit the doctor
                if queue:
-               # If free and queue not empty
+                   
                    d.busy = queue.pop(0)
                    reward -= d.busy.need*d.busy.wait
+                   
+                   # below we get rid of a patient who cannot be treated by the assigned doctor.
+                   # We have already assigned a penalty for the wrong allocation of the patient.
+                   # Here we can add a further penalty because of the time the patient has waited,
+                   # but we can also not do this
                    if not(d.can_treat(d.busy.need)):
+                       #reward -= d.busy.need * 10
                        d.busy = None
+                   # below is the reward if the doctor CAN treat the current patient he has received
+                   # even though the patient will perhaps be treated after some time (according to 
+                   # doctors's efficiency)
                    else:
-                       reward -= d.busy.need
-
+                       reward += 100
+                       # add the current patient to the cured list (we assume that the patient
+                       # is cured if they are currently with a doctor who can treat them)
+                       self.cured.append(d.busy)
+        # Below we could add penalties for having many people in the queues
+        # these rewards will realise on each step so we must not make them too great
+        ######
         # More people is bad, so is waiting a long time
-        # reward -= sum(map(len, s.queues))
+        #reward -= sum(map(len, s.queues))
         # for q in s.queues:
             # reward -= sum([ (p.wait + 1)*p.need for p in q])
-
+        
+        # belowe we define the penalty for reaching the capacity of the hospital
+        # and we also terminate the current episode
         if sum(map(len, s.queues)) >= s.occupancy:
-        # if hospital is full
             # reward -= (sum(map(len, s.queues)) - s.occupancy)
             # reward -= 100
             s.isTerminal = True
-
+        
+        # set the next new patient
         s.newPatient = Patient(need = random.choices(s.actions, weights = s.needs)[0])
 
         return reward
@@ -98,6 +120,7 @@ class Hospital(object):
 
     def reset(self):
         self.queues = [ [] for _ in range(len(self.actions)) ]
+        self.cured = []
         self.newPatient = Patient(need = random.choices(self.actions, weights = self.needs)[0])
         for d in self.doctors:
             d.busy = None
