@@ -7,13 +7,11 @@ The hospital has different doctors who specialize in different things.
 
 For example, doctors could be of 3 different types: type 0, type 1 and type 2.
 A higher number corresponds to higher experience.
+Each individual doctor also has a certain efficiency (modelled as a probability of being finished treating a patient).
 
-[Each individual doctor has an associated queue, and there can be any number of doctors for each type.]::
 Each *type of doctor* has an associated queue, and there can be any number of doctors for each type.
 
 When patients arrive at the hospital, they shall be treated according to their needs.
-
-The hospital doesn't provide appointment services (might be a walk-in centre).
 
 ## Modelling
 
@@ -39,7 +37,12 @@ The total number of patients in the hospital is bounded.
 When the hospital is full, any arriving patient is sent away.
 
 A patient with need *n* has to be seen by a doctor of type *n* or above.
-For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *only once the patient has gone through the queue*.
+For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *but only once the patient has gone through the queue*.
+
+### Files
+- `hospital.py` defines the `Hospital` class along with the methods necessary to simulate the passage of time in a hospital instance (including the reward system necessary for learning a policy).
+- `learning.py` defines all methods pertaining to learning a policy: featurisations, learning algorithms, visualisation of policies.
+- `simulation.py` contains various experiments, i.e. comparisons of learned policies in different situations, having only changed a few parameters.
 
 ## TODO
 ### On hold
@@ -55,16 +58,14 @@ For example, a patient with need 0 can be treated by any doctor, but a patient w
 - Better document to use of each file
 
 ## Report Plan
-1.
-Intro:
+1. Intro:
 - Background
 - Describe the system
 - Discuss details (e.g.
 when the rewards are applied)
 - Introduce research (which algorithms, which experiments, what was compared)
 - Introduce challenges (rewards given at the end)
-2.
-Results
+2. Results
 - Experiment 1:
  - Fixed featurisation
  - Fixed reward system
@@ -73,15 +74,13 @@ Results
 - Experiment 2:
  - 7 doctor types
  - Compare featurisation (one-hot and normal)
-3.
-Discussion
+3. Discussion
 - Which featurisations do best;
 - Which algorithms do best?
 - In what situations we can expect to find the optimal policy
 - What challenges were there? How did we solve/not solve them?
 - Global comparison/applicability
-4.
-Conclusion/Opening
+4. Conclusion/Opening
 - How did it go compared to expectations?
 - What could be done better?
   - Further function approximation? (RBFs, monomials)
