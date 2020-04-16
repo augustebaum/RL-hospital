@@ -52,6 +52,7 @@ For example, a patient with need 0 can be treated by any doctor, but a patient w
   - Shorten introduction (Auguste)
   - Describe experiments (what is being compared, what is expected)
     - Experiment 1 (Todor)
+- Better document to use of each file
 
 ## Report Plan
 1.
