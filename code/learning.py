@@ -399,7 +399,7 @@ def policy_naive(env):
     return env.newPatient.need
 
 ##### Visualisations ###########################
-def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = False):
+def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = False, printSteps = 0):
     """ 
     Simulates a hospital using the epsilon-greedy
     policy based on weights and can plot a stacked bar plot with the results
@@ -423,7 +423,11 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
         a = epsilon_greedy(s, q_weights, epsilon)
         props[env.newPatient.need, a] += 1
         rewards[i] = env.next_step(a)
-    
+        if printSteps and not(i%printSteps):
+        # Only print if printSteps is true and the step is a multiple of 5
+            print("Reward:", rewards[i])
+            env.pretty_print()
+
     props = props/steps*100
     
     # Would be nice to give some kind of list as input to give all the plots, not just one

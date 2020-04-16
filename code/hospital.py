@@ -62,22 +62,23 @@ class Hospital(object):
         for d in s.doctors:
             d.update()
             # If you get a patient you can't treat, send them away and become free
+            # d.busy = None evaluates to False
             if not(d.busy):
                queue = s.queues[d.type]
-               # if queue is not empty
+               # queue = [] evaluates to False
                if queue:
                # If free and queue not empty
                    d.busy = queue.pop(0)
                    reward -= d.busy.need*d.busy.wait
                    if not(d.can_treat(d.busy.need)):
                        d.busy = None
-                   else:
-                       reward -= d.busy.need
+                   # else:
+                       # reward -= d.busy.need
 
         # More people is bad, so is waiting a long time
         # reward -= sum(map(len, s.queues))
-        # for q in s.queues:
-            # reward -= sum([ (p.wait + 1)*p.need for p in q])
+        for q in s.queues:
+            reward -= sum([ (p.wait + 1)*p.need for p in q])
 
         if sum(map(len, s.queues)) >= s.occupancy:
         # if hospital is full
