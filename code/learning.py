@@ -149,7 +149,7 @@ def feature_7(env):
     return np.concatenate((res, waits, types))
 
 ###### LEARNING ALGORITHMS ##################
-def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
+def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps, checkBefore = True, cap_penalty = False):
     """
       Currently returns a list with the rewards from each episode estimated using sarsa algorithm
 
@@ -158,16 +158,19 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
       env - an environment that can be reset and interacted with via step
           (the hospital object in our case)
       gamma - the geometric discount for calculating returns
-      alpha - the learning rate
-      epsilon - the epsilon to use with epsilon greedy policies 
+      alpha - the learning rate, if defined as None then it is calculated as 1 / number_steps
+      epsilon - the decision variable for how greedy the policy is. Epsilon = 1
+                leads to a completely exploratory (random) action taking. Epsilon = 0
+                is the fully greedy policy. 
       num_episodes - number of episode to run
       num_steps - number of steps per episode
+      checkBefore - Whether misallocation is penalized at the beginning (default) or end of the queue
+                    this is a parameter in the next_step function
 
       returns
       -------
       Q_weights - the weight matrix, 1 weight vector for each action in the simulation
       total_reward_per_episode - a list with the reward for each episode
-      timeline_episodes - just a list of the form [0,1,2,3,4.....,num_episodes] 
       t_list - List of when each episode terminated
     """
     if alpha == None:
@@ -207,7 +210,7 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
                 t_list.append("Episode " + str(episode) + " finished at step " + str(step))
                 break
             
-            step_reward = env.next_step(a)
+            step_reward = env.next_step(a, checkBefore, cap_penalty)
             reward += step_reward
             s_ = featurisation(env)
             a_ = epsilon_greedy(s_, Q_weights, epsilon)
@@ -231,7 +234,7 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
             if max(total_reward_per_episode) == total_reward_per_episode[episode]:
                 #print("This is for epsilon ->{}".format(epsilon))
                 Q_optimal_weights = Q_weights
-                print("Optimal weights changed in episode {}; reward -> {}\n".format(episode, total_reward_per_episode[episode]))
+                #print("Optimal weights changed in episode {}; reward -> {}\n".format(episode, total_reward_per_episode[episode]))
                 if total_reward_per_episode[episode] > -500:
                     # used for testing
                     #env.pretty_print()
@@ -258,7 +261,7 @@ def sarsa_update(qweights, s, a, r, s_, a_, gamma, alpha):
     qweights[a] += alpha*(r + gamma*q_next - q_current)*s
     return qweights
 
-def ql(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
+def ql(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps, checkBefore = True, cap_penalty = False):
     """
       Implementation of q-learning algorithm
 
@@ -311,7 +314,7 @@ def ql(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps):
                 break
             
             a = epsilon_greedy(s, Q_weights, epsilon)
-            step_reward = env.next_step(a)
+            step_reward = env.next_step(a, checkBefore, cap_penalty)
             reward += step_reward
             s_ = featurisation(env)
             
@@ -406,7 +409,8 @@ def policy_naive(env):
     return env.newPatient.need
 
 ##### Visualisations ###########################
-def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = False, printSteps = 0):
+def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = False,
+             title = "Untitled", printSteps = 0, checkBefore = True, cap_penalty = False):
     """ 
     Simulates a hospital using the epsilon-greedy
     policy based on weights and can plot a stacked bar plot with the results
@@ -429,7 +433,7 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
         s = featurisation(env)
         a = epsilon_greedy(s, q_weights, epsilon)
         props[env.newPatient.need, a] += 1
-        rewards[i] = env.next_step(a)
+        rewards[i] = env.next_step(a, checkBefore, cap_penalty)
         if printSteps and not(i%printSteps):
         # Only print if printSteps is true and the step is a multiple of 5
             print("Reward:", rewards[i])
@@ -447,8 +451,8 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
             # p.append(ax.bar(range(N), props[i,:], bottom = cumsum, color = ( (i+1)/N, 1-(i+1)/N, 0 )))
             cumsum = cumsum + props[i,:]
 
-        plt.ylabel("Proportions")
-        plt.title('Proportion of each patient type by queue')
+        plt.ylabel("Proportion of each patient type by queue")
+        plt.title(title)
         plt.xticks(range(N), ['Queue '+str(i) for i in range(N)] )
         plt.yticks(np.arange(0, 101, 10))
         plt.legend(tuple( p[i][0] for i in range(N) ), tuple('Type '+str(i) for i in range(N)))
@@ -491,7 +495,7 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
     plt.show()
     return props, rewards, n_cured, time_waited_total, cured_dict
 
-def simulate_naive(env, steps = 100, plot = False):
+def simulate_naive(env, steps = 100, plot = False, checkBefore = True, cap_penalty = False):
     """ 
     Simulates a hospital using the naive policy
 
@@ -510,7 +514,7 @@ def simulate_naive(env, steps = 100, plot = False):
         # s = featurisation(env)
         a = policy_naive(env)
         props[env.newPatient.need, a] += 1
-        rewards[i] = env.next_step(a)
+        rewards[i] = env.next_step(a, checkBefore, cap_penalty)
 
     props = props/steps*100
     
@@ -524,7 +528,7 @@ def simulate_naive(env, steps = 100, plot = False):
             cumsum = cumsum + props[i,:]
 
         plt.ylabel("Proportions")
-        plt.title('Proportion of each patient type by queue')
+        plt.title('Proportion of patients in queues - naive policy')
         plt.xticks(range(N), ['Queue '+str(i) for i in range(N)] )
         plt.yticks(np.arange(0, 101, 10))
         plt.legend(tuple( p[i][0] for i in range(N) ), tuple('Type '+str(i) for i in range(N)))
@@ -550,7 +554,7 @@ def simulate_naive(env, steps = 100, plot = False):
                        
         cbar = ax.figure.colorbar(im, ax=ax)
         
-        ax.set_title("Proportion of each patient type by queue")
+        ax.set_title("Proportion of patients in queues - naive policy")
         fig.tight_layout()
 
     plt.show()

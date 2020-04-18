@@ -42,7 +42,7 @@ class Hospital(object):
         # a list that will keep the cured patients
         self.cured = []
 
-    def next_step(self, action, checkBefore = True):
+    def next_step(self, action, checkBefore = True, cap_penalty = False):
         """
         Update the internal state according to an action and get the reward
 
@@ -63,7 +63,7 @@ class Hospital(object):
         
         # If the patient was misallocated, immediately issue penalty
         if checkBefore and s.newPatient.need > action:
-            reward -= 10*s.newPatient.need
+            reward -= 50 * s.newPatient.need
 
         for d in s.doctors:
             d.update()
@@ -90,6 +90,7 @@ class Hospital(object):
                    # doctors's efficiency)
                    else:
                        reward += 100
+                       #reward += d.busy.need * 100
                        # add the current patient to the cured list (we assume that the patient
                        # is cured if they are currently with a doctor who can treat them)
                        self.cured.append(d.busy)
@@ -104,9 +105,12 @@ class Hospital(object):
         # belowe we define the penalty for reaching the capacity of the hospital
         # and we also terminate the current episode
         if sum(map(len, s.queues)) >= s.occupancy:
-            # reward -= (sum(map(len, s.queues)) - s.occupancy)
-            # reward -= 100
+            # defines a penalty for reaching the total capacity of the hospital
+            if cap_penalty:
+                reward -= 1_000
+                
             s.isTerminal = True
+                
         
         # set the next new patient
         s.newPatient = Patient(need = random.choices(s.actions, weights = s.needs)[0])
