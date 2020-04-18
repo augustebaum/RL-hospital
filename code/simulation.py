@@ -17,7 +17,7 @@ def main():
         (t_list, Q_weights, total_reward_per_episode), max_rewards = simulation1()
         
         # results from random action below, used only for the plot -> nothing else printed
-        (t_list_r, Q_weights_r, total_reward_per_episode_r), max_rewards = simulation1(featurisation = feature_5, epsilon = 1, num_episodes = 20)
+        (t_list_r, Q_weights_r, total_reward_per_episode_r), max_rewards = simulation1(featurisation = feature_5, epsilon = 1, num_episodes = 100)
         print("Simulation no. ", i+1)
         print("Q_weights:\n", Q_weights)
         print("The list with termination episodes:\n", t_list)
@@ -39,7 +39,7 @@ def main():
     print("\nThe average reward after {} simulations is {}".format(n, av_r_sim/n))
     print("\nThe average reward after {} random simulations is {}".format(n, av_r/n))
 
-def simulation1(featurisation = feature_7, num_episodes = 300, num_steps = 100, gamma = 0.85, alpha = None, epsilon = 0.1):
+def simulation1(featurisation = feature_7, num_episodes = 100, num_steps = 100, gamma = 0.9, alpha = None, epsilon = 0.1):
     """
     Two doctors, one of type 0 and one of type 1, and only patients of type 1.
     The expected result is that all patients are dispatched to queue 1.
@@ -66,17 +66,17 @@ def simulation1(featurisation = feature_7, num_episodes = 300, num_steps = 100, 
 
     return sarsa(hospital, featurisation, gamma, alpha, epsilon, num_episodes, num_steps), max_reward
 
-def rewards_curve(max_rewards, rand_rewards, sim_rewards, num_episodes, i = None, legend = True):
+def rewards_curve(max_rewards, rand_rewards, sim_rewards, num_episodes, title = "Untitled", i = None, legend = True):
     # if fig is None:
     #     fig, ax = plt.subplots(tight_layout = True)
     # else:
     #     ax = fig.subplots()
-    plt.title("Simulation "+str(i) if i else "Simulation 1")
+    plt.title(title)
     # ax.plot(range(num_episodes), sim_rewards, "-b", figure = fig, label = "Learned policy")
     # ax.plot(range(num_episodes), max_rewards, "-g", figure = fig, label = "$r=0$ line")
     # ax.plot(range(num_episodes), rand_rewards, "-r", figure = fig, label = "Random policy")
     plt.plot(range(num_episodes), sim_rewards, "-b", label = "Learned policy")
-    plt.plot(range(num_episodes), max_rewards, "-g", label = "$r=0$ line")
+    #plt.plot(range(num_episodes), max_rewards, "-g", label = "$r=0$ line")
     plt.plot(range(num_episodes), rand_rewards, "-r", label = "Random policy")
     if legend:
         plt.legend()
