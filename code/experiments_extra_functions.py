@@ -1,10 +1,16 @@
 from hospital import *
-from simulation import *
+# from simulation import *
 from learning import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-def print_extra_info(rewards, cured, number_steps, cured_types, time, info):
+def print_extra_info(
+        rewards,
+        cured,
+        number_steps,
+        cured_types,
+        time,
+        info):
     """
     Prints out some extra metrics about the process of learning.
     """
@@ -16,10 +22,22 @@ def print_extra_info(rewards, cured, number_steps, cured_types, time, info):
     print("Patients cured by types: \n{}\n".format(cured_types))
     print("Total time waited by the cured patients: {}\n".format(time))
 
-def test(algorithm, capacity_hospital, number_steps, number_episodes, p_arr_prob, doctors,
-         feature, rand_rewards, gamma = 0.9, alpha = None, epsilon = 0.1,
-         plot_type = "hist", title1 = "title 1 unknown", title2 = "title 2 unknown",
-         earlyRewards = True, capacity_penalty = False):
+def test(algorithm,
+    capacity_hospital,
+    number_steps,
+    number_episodes,
+    p_arr_prob,
+    doctors,
+    feature,
+    rand_rewards,
+    gamma = 0.9,
+    alpha = None,
+    epsilon = 0.1,
+    plot_type = "hist",
+    title1 = "title 1 unknown",
+    title2 = "title 2 unknown",
+    earlyRewards = True,
+    capacity_penalty = False):
     """
     Inputs
     ---------
@@ -53,8 +71,6 @@ def test(algorithm, capacity_hospital, number_steps, number_episodes, p_arr_prob
     this function produces 2 plots - one for the best allocation of patients
     and one for the rewards evolution during the learning process.
     Some extra information for the leaning process is also printed out.
-    
-    
     """
 
     # an instance of the Hospital object (defined in hospital.py)

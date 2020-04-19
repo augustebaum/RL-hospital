@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
 """
-Created on Mon Mar 30 18:18:12 2020
-
-@author: todor
-
 This code has been adapted from code provided by Luke Dickens on the UCL module INST0060: Foundations of Machine Learning and Data Science
 """
 import matplotlib.pyplot as plt
@@ -166,6 +161,7 @@ def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps, ch
       num_steps - number of steps per episode
       checkBefore - Whether misallocation is penalized at the beginning (default) or end of the queue
                     this is a parameter in the next_step function
+      cap_penalty - Whether the agent is penalised when occupancy is reached
 
       returns
       -------
@@ -560,3 +556,22 @@ def simulate_naive(env, steps = 100, plot = False, checkBefore = True, cap_penal
     plt.show()
 
     return props, rewards
+
+def rewards_curve(max_rewards, rand_rewards, sim_rewards, num_episodes, title = "Untitled", i = None, legend = True):
+    # if fig is None:
+    #     fig, ax = plt.subplots(tight_layout = True)
+    # else:
+    #     ax = fig.subplots()
+    plt.title(title)
+    # ax.plot(range(num_episodes), sim_rewards, "-b", figure = fig, label = "Learned policy")
+    # ax.plot(range(num_episodes), max_rewards, "-g", figure = fig, label = "$r=0$ line")
+    # ax.plot(range(num_episodes), rand_rewards, "-r", figure = fig, label = "Random policy")
+    plt.plot(range(num_episodes), sim_rewards, "-b", label = "Learned policy")
+    #plt.plot(range(num_episodes), max_rewards, "-g", label = "$r=0$ line")
+    plt.plot(range(num_episodes), rand_rewards, "-r", label = "Random policy")
+    if legend:
+        plt.legend()
+        plt.xlabel("Episodes")
+        plt.ylabel("Reward")
+
+    # return ax
