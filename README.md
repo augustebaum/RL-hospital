@@ -60,22 +60,22 @@ For example, a patient with need 0 can be treated by any doctor, but a patient w
 - Introduce challenges (rewards given at the end)
 2. Results
 - Experiment 1: (Todor)
- - Fixed reward system
- - Compare featurisations:
-  - One non-one-hot
-  - `feature_7`
-  - Another one-hot
+  - Fixed reward system
+  - Compare featurisations:
+    - One non-one-hot
+    - `feature_7`
+    - Another one-hot
 - Experiment 2: (Auguste)
- - 4 doctor types
- - Change efficiency of most skilled doctor
- - Plot something vs. efficiency
+  - 4 doctor types
+  - Change efficiency of most skilled doctor
+  - Plot something vs. efficiency
 - Experiment 3: (Isabel and Yongxin)
- - Fixed system
- - Fixed featurisation
- - Change reward system
+  - Fixed system
+  - Fixed featurisation
+  - Change reward system
 3. Discussion
 - Which featurisations do best;
- - Adapt it to the rewards system (e.g. if part of the reward depends on patient waits then you should include info about those in the featurisation)
+  - Adapt it to the rewards system (e.g. if part of the reward depends on patient waits then you should include info about those in the featurisation)
 - Which algorithms do best? -> ql seems faster? (to test)
 - In what situations we can expect to find the optimal policy
 - What challenges were there? How did we solve/not solve them?
