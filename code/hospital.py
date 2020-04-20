@@ -80,13 +80,13 @@ class Hospital(object):
                    reward -= d.busy.need*d.busy.wait
                    if not(d.can_treat(d.busy.need)):
                        if not(checkBefore):
-                           reward -= d.busy.need * 10
+                           reward -= d.busy.need * 50
                        d.busy = None
                    else:
                        # Reward for curing patients
                        reward += 100
                        # Alternatively:
-                       # reward += d.busy.need * 100
+                       # reward += (d.busy.need + 1) * 30
                        # add the current patient to the `cured` list
                        self.cured.append(d.busy)
         # Below we could add penalties for having many people in the queues
@@ -102,7 +102,7 @@ class Hospital(object):
         if sum(map(len, s.queues)) >= s.occupancy:
             # defines a penalty for reaching the total capacity of the hospital
             if cap_penalty:
-                reward -= 1_000
+                reward -= 10_000
                 
             s.isTerminal = True
                 
