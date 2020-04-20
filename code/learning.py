@@ -11,18 +11,18 @@ from math import *
 def feature_1(env):
     """A representation of the hospital"""
     res = []
-    res.append(sum(map(len, env.queues))/len(env.queues))    
+    res.append(env.newPatient.need)   
     for q in env.queues:
         q = [ p.need for p in q ]             
         for i in env.actions:
             num_patients = q.count(i)
-            if num_patients == 0: res.append(0)
-            elif num_patients == 1: res.append(1)
-            elif num_patients <= 3: res.append(2)
-            elif num_patients <= 6: res.append(3)
-            elif num_patients <= 10: res.append(4)
-            elif num_patients <= 15: res.append(5)
-            else: res.append(6)
+            if num_patients == 0: 
+                res.append(0)
+            elif num_patients < 3: 
+                res.append(1)
+            else:
+                res.append(2)
+  
     return np.array(res)
 
 def feature_2(env):
@@ -142,6 +142,180 @@ def feature_7(env):
         # types = np.array( np.array(types) > num_actions, dtype = int )
         types = np.concatenate(( types, np.array(np.arange(3) == c, dtype = int)))
     return np.concatenate((res, waits, types))
+
+def feature_8(env):
+    """
+    A representation of the hospital
+       A concatentation of:
+       A one-hot vector for the need of the new patient
+       One one-hot vector for the number of patients with a given need per queue
+       
+
+       Difference with feature_7:
+           
+            ------- currently we do not include the wait vector in the feature representation
+       
+    """
+    num_actions = len(env.actions)
+    # Need of new patient
+    res = np.array(np.arange(num_actions) == env.newPatient.need, dtype=int)
+    # Number of people of given type in each queue
+    types = np.array([])
+    for i, q in enumerate(env.queues):
+        q = [ p.need for p in q ]
+        if q.count(i) < num_actions: c = 0
+        elif q.count(i) < 2*num_actions: c = 1
+        else: c = 2
+        # types.extend( q.count(i) for i in range(num_actions) )
+        # types = np.array( np.array(types) > num_actions, dtype = int )
+        types = np.concatenate(( types, np.array(np.arange(3) == c, dtype = int)))
+    return np.concatenate((res, types))
+
+
+def feature_9(env):
+    """A representation of the hospital
+       A concatentation of:
+       A one-hot vector for the total number of patients in queues
+       A one-hot vector for the need of the new patient
+       A one-hot vector for the average wait
+       One one-hot vector for the number of patients with a given need per queue
+       
+       ----- difference with inital feature 7 -> added a vector for total number of patients
+    """
+    num_patients = sum(map(len, env.queues))
+    if num_patients < 0.25 * env.occupancy: 
+        num_patients = 0
+    elif num_patients < 0.5 * env.occupancy:
+        num_patients = 1
+    elif num_patients < 0.75 * env.occupancy:
+        num_patients = 2
+    else:
+        num_patients = 3
+    num_patients = np.array(np.arange(4) == num_patients, dtype=int)
+
+    num_actions = len(env.actions)
+    # Need of new patient
+    res = np.array(np.arange(num_actions) == env.newPatient.need, dtype=int)
+    # Average waiting time
+    if sum(map(len, env.queues)) == 0:
+        waits = 0
+    else:
+        # Not too sure about this one -- especially the boundary
+        # waits = 1 if np.mean([ p.wait for p in np.concatenate(env.queues) ]) > num_actions*len(env.doctors) else 0
+        waits = np.mean([ p.wait for p in np.concatenate(env.queues) ])
+        if waits < num_actions: waits = 0
+        elif waits < 2 * num_actions: waits = 1
+        else: waits = 2
+    waits = np.array(np.arange(3) == waits, dtype = int)
+    # Number of people of given type in each queue
+    types = np.array([])
+    for i, q in enumerate(env.queues):
+        q = [ p.need for p in q ]
+        if q.count(i) < num_actions: c = 0
+        elif q.count(i) < 2*num_actions: c = 1
+        else: c = 2
+        # types.extend( q.count(i) for i in range(num_actions) )
+        # types = np.array( np.array(types) > num_actions, dtype = int )
+        types = np.concatenate(( types, np.array(np.arange(3) == c, dtype = int)))
+    return np.concatenate((num_patients, res, waits, types))
+
+def feature_10(env):
+    """A representation of the hospital
+       A concatentation of:
+    
+       One one-hot vector for the number of patients with a given need per queue
+       
+       A bad featurisation - does not carry enough information
+    """
+    num_actions = len(env.actions)
+    # Need of new patient
+    res = np.array(np.arange(num_actions) == env.newPatient.need, dtype=int)
+    
+    # Number of people of given type in each queue
+    types = np.array([])
+    for i, q in enumerate(env.queues):
+        q = [ p.need for p in q ]
+        if q.count(i) < num_actions: c = 0
+        elif q.count(i) < 2*num_actions: c = 1
+        else: c = 2
+        # types.extend( q.count(i) for i in range(num_actions) )
+        # types = np.array( np.array(types) > num_actions, dtype = int )
+        types = np.concatenate(( types, np.array(np.arange(3) == c, dtype = int)))
+    #return np.concatenate((res, types))
+    return types
+
+def feature_11(env):
+    """A representation of the hospital
+       A concatentation of:
+       A one-hot vector for the need of the new patient
+       A one-hot vector for the average wait
+       One one-hot vector for the number of patients with a given need per queue
+       
+       ------ difference with feature_7 -> should have different definitions(boundaries)
+       for the creation of the 1-hot vectors
+    """
+    num_actions = len(env.actions)
+    h_capacity = env.occupancy
+    # Need of new patient
+    res = np.array(np.arange(num_actions) == env.newPatient.need, dtype=int)
+    # Average waiting time
+    if sum(map(len, env.queues)) == 0:
+        waits = 0
+    else:
+        # Not too sure about this one -- especially the boundary
+        # waits = 1 if np.mean([ p.wait for p in np.concatenate(env.queues) ]) > num_actions*len(env.doctors) else 0
+        waits = np.mean([ p.wait for p in np.concatenate(env.queues) ])
+        if waits < 0.1 * h_capacity: waits = 0
+        elif waits < 0.3 * h_capacity: waits = 1
+        else: waits = 2
+    waits = np.array(np.arange(3) == waits, dtype = int)
+    # Number of people of given type in each queue
+    types = np.array([])
+    for i, q in enumerate(env.queues):
+        q = [ p.need for p in q ]
+        if q.count(i) < 0.05 * h_capacity: c = 0
+        elif q.count(i) < 0.1 * h_capacity: c = 1
+        else: c = 2
+        # types.extend( q.count(i) for i in range(num_actions) )
+        # types = np.array( np.array(types) > num_actions, dtype = int )
+        types = np.concatenate(( types, np.array(np.arange(3) == c, dtype = int)))
+    return np.concatenate((res, waits, types))
+
+def feature_12(env):
+    """A representation of the hospital
+       A concatentation of:
+       A one-hot vector for the need of the new patient
+       A one-hot vector for the average wait
+       One one-hot vector for the number of patients with a given need per queue
+       
+       ------ difference with feature_7 -> should have info about the number of patients
+       in each queue; also the boundaries
+    """
+    num_actions = len(env.actions)
+    h_capacity = env.occupancy
+    # Need of new patient
+    res = np.array(np.arange(num_actions) == env.newPatient.need, dtype=int)
+    
+    # Number of people of given type in each queue and max waiting time
+    types = np.array([])
+    for i, q in enumerate(env.queues):
+        if len(q) == 0:
+            waits = 0
+        else:
+            waits = q[0].wait   # wait time of the first patient in line
+            if waits < 0.1 * h_capacity: waits = 0
+            elif waits < 0.3 * h_capacity: waits = 1
+            else: waits = 2
+        types = np.concatenate(( types, np.array(np.arange(3) == waits, dtype = int)))   
+        #waits = np.array(np.arange(3) == waits, dtype = int)
+        q = [ p.need for p in q ]
+        if q.count(i) < 0.05 * h_capacity: c = 0
+        elif q.count(i) < 0.1 * h_capacity: c = 1
+        else: c = 2
+        # types.extend( q.count(i) for i in range(num_actions) )
+        # types = np.array( np.array(types) > num_actions, dtype = int )
+        types = np.concatenate(( types, np.array(np.arange(3) == c, dtype = int)))
+    return np.concatenate((res, types))
 
 ###### LEARNING ALGORITHMS ##################
 def sarsa(env, featurisation, gamma, alpha, epsilon, num_episodes, num_steps, checkBefore = True, cap_penalty = False):
