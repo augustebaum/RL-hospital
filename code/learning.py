@@ -405,20 +405,36 @@ def policy_naive(env):
     return env.newPatient.need
 
 ##### Visualisations ###########################
-def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = False,
-             title = "Untitled", printSteps = 0, checkBefore = True, cap_penalty = False):
+def simulate(
+    env,
+    featurisation,
+    q_weights,
+    steps = 100,
+    epsilon = 0,
+    plot = False,
+    title = "Untitled",
+    printSteps = 0,
+    checkBefore = True,
+    cap_penalty = False):
     """ 
     Simulates a hospital using the epsilon-greedy
     policy based on weights and can plot a stacked bar plot with the results
 
     Inputs:
     -----------
-    env: a hospital instance
-    steps: how many steps to simulate
-    featurisation: outputs a representation for a given hospital state
-    q_weights: a set of weights which was learned; these should be based on learning done using the above featurisation
-    epsilon: probability of choosing action randomly
-    plot: What kind of plot (if any) should be produced: "hist" or "map" (stacked bar plot or heatmap)
+    env - a hospital instance
+    steps - how many steps to simulate
+    featurisation - outputs a representation for a given hospital state
+    q_weights - a set of weights which was learned;
+        these should be based on learning done using the above featurisation
+    epsilon - probability of choosing action randomly
+    plot - What kind of plot (if any) should be produced: 
+        "hist" or "map" (stacked bar plot or heatmap)
+    title - If there is a plot, it's title (string)
+    printSteps - If non-zero, this will print the internal state of the hospital every printSteps steps
+    checkBefore - During training, whether to penalise the agent for misallocation as soon as it's done or once the patient gets to the doctor
+    cap_penalty - During training, whether to penalise the agent when the hospital capacity is reached (and the episode is terminated)
+
     """
     env.reset()
     N = len(env.actions)
@@ -473,7 +489,9 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
                        
         cbar = ax.figure.colorbar(im, ax=ax)
         
+        # plt.title(title)
         ax.set_title("Proportion of each patient type by queue")
+        ax.set_title(title)
         fig.tight_layout()
     # some extra metrics to estimate the performance of the algorithm
     # number of cured patients
@@ -490,6 +508,7 @@ def simulate(env, featurisation, q_weights, steps = 100, epsilon = 0, plot = Fal
 
     plt.show()
     return props, rewards, n_cured, time_waited_total, cured_dict
+
 
 def simulate_naive(env, steps = 100, plot = False, checkBefore = True, cap_penalty = False):
     """ 
