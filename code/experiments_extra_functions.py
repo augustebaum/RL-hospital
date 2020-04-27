@@ -126,7 +126,7 @@ def test(
     
     
     # Extra information to be printed for the first figure
-    print_extra_info(rewards, cured, number_steps, cured_types, time, title1)
+    print_extra_info(rewards, cured, number_steps, cured_types, sum(map(sum, time)), title1)
     
     return props, rewards, cured, time, cured_types 
 

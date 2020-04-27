@@ -3,8 +3,9 @@ from learning import *
 from experiments_extra_functions import *
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import rc
-rc('text', usetex=True)
+# For formatting the text using tex
+# from matplotlib import rc
+# rc('text', usetex=True)
 # For exporting variables to file
 from datetime import datetime
 """ 
@@ -35,20 +36,23 @@ doctors_1 = [Doctor(0, p_slow),
 
 # p is the probability that the arriving patient is of type 3
 p_array = np.linspace(0.1, 0.9, 5)
-# Number of simulations for each p (to get error bars)
+# Number of simulations for each p (to get error)
 number_tries = 5
 # Number of people in queue 3 for each p
 queue3 = np.empty([number_tries, len(p_array)])
 # Number of people in queue 3 that are of type 3 for each p
 queue3type3 = np.empty([number_tries, len(p_array)])
+# Average amount of time type 3 patients waited for
+time3 = np.empty([number_tries, len(p_array)])
 
 for j, p in enumerate(p_array):
     arrival_rates = [1, 1, 1, round(3*p/(1-0.99999*p))]
 
-    # this hospital object used only to calculate the random rewards list
+    # # this hospital object used only to calculate the random rewards list
+    # Not very useful
     hospital_r = Hospital( capacity_hospital, doctors_1, [1, 1, 1, 1])
 
-    # Random policy (total_reward_per_episode_r is needed in `test`)
+    # # Random policy (total_reward_per_episode_r is needed in `test`)
     t_list_r, Q_optimal_weights_r, total_reward_per_episode_r = sarsa( hospital_r, feature, 0, 0, 1, number_episodes, number_steps)
 
     # Run hospital with the naive policy for number_steps steps
@@ -57,11 +61,11 @@ for j, p in enumerate(p_array):
 
     # Train, simulate and gather:
     # - The number of non-type 3 patients in queue 3
-    # - The number of time that 3-patients waited?
+    # - The time that 3-patients waited?
 
     for i in range(number_tries):
     # Testing using equal arrival probabilities to provide unbiased account
-        props, rewards, cured, time, cured_types =\
+        props, rewards, cured, time_array, cured_types =\
             test(
                 sarsa,
                 capacity_hospital,
@@ -85,26 +89,31 @@ for j, p in enumerate(p_array):
         # queue3type3.append(props[3,3])
         queue3[i, j] = sum(props[:,3])
         queue3type3[i, j] = props[3,3]
+        time3[i, j] = np.mean(time_array[3])
 
 print(queue3)
 print(queue3type3)
+print(time3)
 
-np.savez("exp2_data_"+datetime.now().strftime("%d-%m,%H:%M"), queue3, queue3type3)
+# Save to file for further analysis
+# np.savez("exp2_data_"+datetime.now().strftime("%d-%m,%H:%M"), queue3, queue3type3)
 
 av_q3 = np.mean(queue3, axis=0)
 av_q3t3 = np.mean(queue3type3, axis=0)
+av_time3 = np.mean(time3, axis=0)
 
 yerr_q3 = 2*np.std(queue3, axis=0)
 yerr_q3t3 = 2*np.std(queue3type3, axis=0)
+yerr_time3 = 2*np.std(time3, axis=0)
 
 print("2 std devs for queue3", yerr_q3)
 print("2 std devs for queue3type3", yerr_q3t3)
+print("2 std devs for time3", yerr_time3)
 
 plt.figure()
-# plt.plot(p_array, queue3, label="Proportion of patients in queue 3")
-plt.errorbar(p_array, av_q3, yerr=yerr_q3, elinewidth=1, capsize=2, label="Proportion of patients in queue 3")
-# plt.plot(p_array, queue3type3, label="Proportion of patients of type 3 in queue 3")
-plt.errorbar(p_array, av_q3t3, yerr=yerr_q3t3, elinewidth=1, capsize=2, label="Proportion of patients of type 3 in queue 3")
+# plt.errorbar(p_array, av_q3, yerr=yerr_q3, elinewidth=1, capsize=2, label="Proportion of patients in queue 3")
+# plt.errorbar(p_array, av_q3t3, yerr=yerr_q3t3, elinewidth=1, capsize=2, label="Proportion of patients of type 3 in queue 3")
+plt.errorbar(p_array, av_time3, yerr=yerr_time3, elinewidth=1, capsize=2, label="Average time waited by (cured) type 3 patients")
 plt.legend()
 plt.xlabel("Probability that arriving patient has type 3 during training")
 

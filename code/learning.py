@@ -1,5 +1,5 @@
 """
-This code has been adapted from code provided by Luke Dickens on the UCL module INST0060: Foundations of Machine Learning and Data Science
+Part of this code has been adapted from code provided by Luke Dickens on the UCL module INST0060: Foundations of Machine Learning and Data Science
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -621,7 +621,7 @@ def simulate(
         props[env.newPatient.need, a] += 1
         rewards[i] = env.next_step(a, checkBefore, cap_penalty)
         if printSteps and not(i%printSteps):
-        # Only print if printSteps is true and the step is a multiple of 5
+        # Only print if printSteps is true and the step is a multiple of printSteps
             print("Reward:", rewards[i])
             env.pretty_print()
 
@@ -634,6 +634,7 @@ def simulate(
         p = [ax.bar(range(N), cumsum, color=(172/255,255/255,47/255))]
         for i in range(1,N):
             p.append(ax.bar(range(N), props[i,:], bottom = cumsum))
+            # Tried to get expressive colors but it makes them more difficult to distinguish
             # p.append(ax.bar(range(N), props[i,:], bottom = cumsum, color = ( (i+1)/N, 1-(i+1)/N, 0 )))
             cumsum = cumsum + props[i,:]
 
@@ -654,19 +655,12 @@ def simulate(
 
         # Rotate the tick labels and set their alignment.
         # plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-
-        # Loop over data dimensions and create text annotations.
-        # for i in range(len(vegetables)):
-            # for j in range(len(farmers)):
-                # text = ax.text(j, i, harvest[i, j],
-                       # ha="center", va="center", color="w")
-                       
         cbar = ax.figure.colorbar(im, ax=ax)
         
-        # plt.title(title)
         ax.set_title("Proportion of each patient type by queue")
         ax.set_title(title)
         fig.tight_layout()
+
     # some extra metrics to estimate the performance of the algorithm
     # number of cured patients
     n_cured = len(env.cured)
@@ -677,11 +671,13 @@ def simulate(
     
     for i in range(len(env.queues)):
         cured_dict["Type " + str(i)] = cured_types.count(i)
+
     # combined waiting time for the cured patients
     time_waited_total = sum(patient.wait for patient in env.cured)
+    time_array = [ [ p.wait for p in filter(lambda x: x.need == i, env.cured) ] for i in range(len(env.actions)) ]
 
     plt.show()
-    return props, rewards, n_cured, time_waited_total, cured_dict
+    return props, rewards, n_cured, time_array, cured_dict
 
 
 def simulate_naive(env, steps = 100, plot = False, checkBefore = True, cap_penalty = False):
