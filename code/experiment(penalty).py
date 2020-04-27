@@ -4,6 +4,7 @@ from learning import *
 from experiments_extra_functions import *
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
 """ 
 The current experiment will focus on a hospital object with 6 different types 
 of doctors and equal probability of each type of patient to arrive. 
@@ -57,12 +58,11 @@ p_naive, r_naives = simulate_naive(hospital_r, steps = number_steps, plot = "his
 print("\nThe average step reward after the simulation with naive policy is:",np.mean(r_naives))
 
 
-
 # the title show clearly what it is
 # each test produces 2 figures
 
 # First Test (SARSA Algorithm)
-test(sarsa,
+test1=test(sarsa,
     capacity_hospital,
     number_steps,
     number_episodes,
@@ -73,11 +73,15 @@ test(sarsa,
     gamma = 0.9,
     alpha = None,
     epsilon = 0.1,
-    plot_type = "hist",
+    plot_type = None,
     title1 = "(1.1)Sarsa + earlyReward + Capacity_penalty",
     title2 = "(1.1)Reward evolution for the picture above",
     earlyRewards = True,capacity_penalty = True)
- 
+
+#x=misalloc(4)
+#plt.hist(x, bins=10)
+#plt.show()
+
 test(sarsa,
     capacity_hospital,
     number_steps,
@@ -89,7 +93,7 @@ test(sarsa,
     gamma = 0.9,
     alpha = None,
     epsilon = 0.1,
-    plot_type = "hist",
+    plot_type = None,
     title1 = "(1.2)Sarsa + early rewards",
     title2 = "(1.2)Reward evolution for the picture above",
     earlyRewards = True,capacity_penalty = False)
@@ -106,7 +110,7 @@ test(sarsa,
     gamma = 0.9,
     alpha = None,
     epsilon = 0.1,
-    plot_type = "hist",
+    plot_type = None,
     title1 = "(1.3)Sarsa + capacity_penalty",
     title2 = "(1.3)Reward evolution for the picture above",
     earlyRewards = False,capacity_penalty = True)
@@ -122,7 +126,7 @@ test(sarsa,
     gamma = 0.9,
     alpha = None,
     epsilon = 0.1,
-    plot_type = "hist",
+    plot_type = None,
     title1 = "(1.4)Sarsa + no penalty",
     title2 = "(1.4)Reward evolution for the picture above",
     earlyRewards = False,capacity_penalty = False)
@@ -142,7 +146,7 @@ test(ql,
     gamma = 0.9,
     alpha = None,
     epsilon = 0.1,
-    plot_type = "hist",
+    plot_type = None,
     title1 = "(2.1)Q-learnin + early rewards + capacity_penalty",
     title2 = "(2.1)Reward evolution for the picture above",
     earlyRewards = True, capacity_penalty = True) 
@@ -159,7 +163,7 @@ test(ql,
     gamma = 0.9,
     alpha = None,
     epsilon = 0.1,
-    plot_type = "hist",
+    plot_type = None,
     title1 = "(2.2)Q-learning + early rewards",
     title2 = "(2.2)Reward evolution for the picture above",
     earlyRewards = True,capacity_penalty = False)
@@ -175,7 +179,7 @@ test(ql,
     gamma = 0.9,
     alpha = None,
     epsilon = 0.1,
-    plot_type = "hist",
+    plot_type = None,
     title1 = "(2.3)Q-learning + capacity_penalty",
     title2 = "(2.3)Reward evolution for the picture above",
     earlyRewards = False,capacity_penalty =True)
@@ -191,10 +195,58 @@ test(ql,
     gamma = 0.9,
     alpha = None,
     epsilon = 0.1,
-    plot_type = "hist",
+    plot_type = None,
     title1 = "(2.4)Q-learning + no penalty",
     title2 = "(2.4)Reward evolution for the picture above",
     earlyRewards = False,capacity_penalty =False)
 
 
+mis = misalloc()
+print("the value of y axis is :" ,mis)
 
+N = 4
+SARSAMeans = [150, 160, 146, 172]
+#SARSAStd = (20, 30, 32, 10)
+fig, ax = plt.subplots()
+
+ind = np.arange(N)    # the x locations for the groups
+width = 0.3         # the width of the bars
+p1 = ax.bar(ind, SARSAMeans, width,label='SARSA')
+
+
+QLMeans = (145, 149, 172, 165)
+QLStd = (30, 25, 20, 31)
+p2 = ax.bar(ind + width, QLMeans, width,label='Q Learning')
+
+ax.set_ylabel('Frequency Rate')
+ax.set_title('Frequency rate of misallocation ')
+ax.set_xticks(ind + width / 2)
+ax.set_xticklabels(('TT', 'TF', 'FT', 'FF'))
+ax.legend()
+
+def autolabel(rects, xpos='center'):
+ 
+    ha = {'center': 'center', 'right': 'left', 'left': 'right'}
+    offset = {'center': 0, 'right': 1, 'left': -1}
+
+    for rect in rects:
+        height = rect.get_height()
+        ax.annotate('{}'.format(height),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(offset[xpos]*3, 3),  # use 3 points offset
+                    textcoords="offset points",  # in both directions
+                    ha=ha[xpos], va='bottom')
+
+
+autolabel(p1, "left")
+autolabel(p2, "right")
+
+plt.show()
+
+
+
+
+#b = (1,2,3,4)
+#n, bins, patches = plt.hist(a, b, facecolor='blue', alpha=0.5)
+#plt.title("Histogram of SARSA ")
+#plt.show()
