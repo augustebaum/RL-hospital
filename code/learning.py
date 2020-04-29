@@ -663,6 +663,7 @@ def simulate(
         plt.xticks(range(N), ['Queue '+str(i) for i in range(N)] )
         plt.yticks(np.arange(0, 101, 10))
         plt.legend(tuple( p[i][0] for i in range(N) ), tuple('Type '+str(i) for i in range(N)))
+        plt.tight_layout()
 
     elif plot == "map":
         fig, ax = plt.subplots()
@@ -679,6 +680,7 @@ def simulate(
         
         ax.set_title("Proportion of each patient type by queue")
         ax.set_title(title)
+        plt.tight_layout()
 
     # some extra metrics to estimate the performance of the algorithm
     # number of cured patients
@@ -695,7 +697,6 @@ def simulate(
     time_waited_total = sum(patient.wait for patient in env.cured)
     time_array = [ [ p.wait for p in filter(lambda x: x.need == i, env.cured) ] for i in range(len(env.actions)) ]
 
-    plt.tight_layout()
     plt.show()
     return props, rewards, n_cured, time_array, cured_dict
 
