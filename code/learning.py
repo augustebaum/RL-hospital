@@ -715,7 +715,7 @@ def rewards_curve(sim_rewards, num_episodes, title = "Untitled", naive_rewards =
     """
     plt.title(title)
     plt.plot(range(num_episodes), sim_rewards, "-b", label = "Learned policy")
-    if list(naive_rewards):
+    if naive_rewards:
         plt.plot(range(num_episodes), naive_rewards, "-r", label = "Naive policy")
     if max_rewards:
         plt.plot(range(num_episodes), max_rewards, "-g", label = "Maximum reward")
