@@ -737,6 +737,7 @@ def print_extra_info(
     """
     print(40*"#")
     print("Extra data for {}\n".format(info))
+    print("Total reward achieved while simulating after the learning process: {}".format(sum(rewards)))
     print("\n{} patients were cured during the simulation of {} steps.\n".format(cured, number_steps))
     print("Patients cured by types: \n{}\n".format(cured_types))
     print("Total time waited by the cured patients: {}\n".format(time))
