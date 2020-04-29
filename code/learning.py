@@ -700,22 +700,23 @@ def simulate(
     plt.show()
     return props, rewards, n_cured, time_array, cured_dict
 
-def rewards_curve(rand_rewards, sim_rewards, num_episodes, max_rewards = None, title = "Untitled", legend = True):
+def rewards_curve(sim_rewards, num_episodes, title = "Untitled", naive_rewards = None, max_rewards = None, legend = True):
     """
     Plots the learning curve (average reward for each episode)
     
     Inputs:
-    rand_rewards - Array containing the rewards obtained for a simulation using the random policy
-    sim_rewards  - Array containing the rewards obtained for a simulation using the learned policy (ie learning curve)
-    num_episodes - Int: How many episodes the agent is being trained for
-    max_rewards  - Array full of the theoretical maximum reward, for comparison:
-                   this maximum is system dependent so exercise caution
-    title        - String: Title of the resulting plot
-    legend       - Boolean: Whether the legend and axis labels are shown
+    sim_rewards   - Array containing the rewards obtained for a simulation using the learned policy (ie learning curve)
+    num_episodes  - Int: How many episodes the agent is being trained for
+    naive_rewards - Array containing the rewards obtained for a simulation using the naive policy
+    max_rewards   - Array full of the theoretical maximum reward, for comparison:
+                    this maximum is system dependent so exercise caution
+    title         - String: Title of the resulting plot
+    legend        - Boolean: Whether the legend and axis labels are shown
     """
     plt.title(title)
     plt.plot(range(num_episodes), sim_rewards, "-b", label = "Learned policy")
-    plt.plot(range(num_episodes), rand_rewards, "-r", label = "Random policy")
+    if naive_rewards:
+        plt.plot(range(num_episodes), naive_rewards, "-r", label = "Random policy")
     if max_rewards:
         plt.plot(range(num_episodes), max_rewards, "-g", label = "Maximum reward")
     if legend:
@@ -847,7 +848,7 @@ def test(
     
     # A plot that shows the episodic reward evolution during the learning phase
     # this is also informative of how fast the algorithm is learning
-    # rewards_curve(0, rand_rewards, total_reward_per_episode, number_episodes, title2)
+    # rewards_curve(total_reward_per_episode, number_episodes, title2)
     
     
     # Extra information to be printed for the first figure
