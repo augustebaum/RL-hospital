@@ -1,6 +1,7 @@
 """
 Part of this code has been adapted from code provided by Luke Dickens on the UCL module INST0060: Foundations of Machine Learning and Data Science
 """
+from hospital import *
 import matplotlib.pyplot as plt
 import numpy as np
 import random
