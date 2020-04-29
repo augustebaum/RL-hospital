@@ -171,7 +171,6 @@ def feature_8(env):
         types = np.concatenate(( types, np.array(np.arange(3) == c, dtype = int)))
     return np.concatenate((res, types))
 
-
 def feature_9(env):
     """A representation of the hospital
        A concatentation of:
@@ -418,13 +417,19 @@ def sarsa_update(qweights, s, a, r, s_, a_, gamma, alpha):
     """
     Updates the qweights following the sarsa method for function approximation.
     ----------
-    s    - is the 1d numpy array of the state feature
-    a        - is the index of the action
     qweights - a list of weight vectors, one per action
         qweights[i] is the weights for the ith action    
+    s        - 1d numpy array of the state feature
+    a        - index of the action
+    r        - Reward obtained at last timestep
+    s_       - Next state
+    a_       - Next action
+    gamma    - Discount
+    alpha    - Learning rate
 
     returns
     -------
+    Updated qweights
     """
     q_current = q_approx(s, a, qweights)
     q_next = q_approx(s_, a_, qweights)
@@ -581,43 +586,57 @@ def policy_naive(env):
 ##### Visualisations ###########################
 def simulate(
     env,
-    featurisation,
-    q_weights,
-    steps = 100,
-    epsilon = 0,
-    plot = False,
-    title = "Untitled",
-    printSteps = 0,
-    checkBefore = True,
-    cap_penalty = False):
+    featurisation = None,
+    q_weights     = None,
+    naive         = False,
+    steps         = 100,
+    epsilon       = 0,
+    plot          = False,
+    title         = "Untitled",
+    printSteps    = 0,
+    checkBefore   = True,
+    cap_penalty   = False):
     """ 
     Simulates a hospital using the epsilon-greedy
     policy based on weights and can plot a stacked bar plot with the results
 
     Inputs:
     -----------
-    env - a hospital instance
-    steps - how many steps to simulate
-    featurisation - outputs a representation for a given hospital state
-    q_weights - a set of weights which was learned;
-        these should be based on learning done using the above featurisation
-    epsilon - probability of choosing action randomly
-    plot - What kind of plot (if any) should be produced: 
+    env           - Hospital instance
+    steps         - How many steps to simulate
+    featurisation - Representation for a given hospital state
+    q_weights     - Set of learned weights;
+                    these should be based on learning done using the above featurisation
+    naive         - Whether the naive policy should be used instead of the learned policy.
+                    If True, q_weigths, featurisation and epsilon are irrelevant.
+    epsilon       - probability of choosing action randomly
+    plot          - What kind of plot (if any) should be produced: 
         "hist" or "map" (stacked bar plot or heatmap)
-    title - If there is a plot, it's title (string)
-    printSteps - If non-zero, this will print the internal state of the hospital every printSteps steps
-    checkBefore - During training, whether to penalise the agent for misallocation as soon as it's done or once the patient gets to the doctor
-    cap_penalty - During training, whether to penalise the agent when the hospital capacity is reached (and the episode is terminated)
+    title         - If there is a plot, its title (string)
+    printSteps    - If non-zero, this will print the internal state of the hospital every printSteps steps
+    checkBefore   - During training, whether to penalise the agent for
+                    misallocation as soon as it's done or once the patient gets to the doctor
+    cap_penalty   - During training, whether to penalise the agent when the hospital 
+                    capacity is reached (in addition to the episode is terminated)
 
+    TODO:
+    Check that featurisation fits with q_weights
     """
     env.reset()
     N = len(env.actions)
     props = np.zeros([N, N])
     rewards = np.zeros(steps)
 
+    if not(naive) and (featurisation is None or q_weights is None):
+        print("Cannot use both a learned policy and naive policy!")
+        return
+
     for i in range(steps):
-        s = featurisation(env)
-        a = epsilon_greedy(s, q_weights, epsilon)
+        if naive:
+            a = policy_naive(env)
+        else:
+            s = featurisation(env)
+            a = epsilon_greedy(s, q_weights, epsilon)
         props[env.newPatient.need, a] += 1
         rewards[i] = env.next_step(a, checkBefore, cap_penalty)
         if printSteps and not(i%printSteps):
@@ -659,7 +678,6 @@ def simulate(
         
         ax.set_title("Proportion of each patient type by queue")
         ax.set_title(title)
-        fig.tight_layout()
 
     # some extra metrics to estimate the performance of the algorithm
     # number of cured patients
@@ -676,91 +694,166 @@ def simulate(
     time_waited_total = sum(patient.wait for patient in env.cured)
     time_array = [ [ p.wait for p in filter(lambda x: x.need == i, env.cured) ] for i in range(len(env.actions)) ]
 
+    plt.tight_layout()
     plt.show()
     return props, rewards, n_cured, time_array, cured_dict
 
-
-def simulate_naive(env, steps = 100, plot = False, checkBefore = True, cap_penalty = False):
-    """ 
-    Simulates a hospital using the naive policy
-
-    Inputs:
-    -----------
-    env: a hospital instance
-    steps: how many steps to simulate
-    plot: What kind of plot (if any) should be produced: "hist" or "map"
-        (stacked bar plot or heatmap)
+def rewards_curve(rand_rewards, sim_rewards, num_episodes, max_rewards = None, title = "Untitled", legend = True):
     """
-    env.reset()
-    N = len(env.actions)
-    props = np.zeros([N, N])
-    rewards = np.zeros(steps)
-    for i in range(steps):
-        # s = featurisation(env)
-        a = policy_naive(env)
-        props[env.newPatient.need, a] += 1
-        rewards[i] = env.next_step(a, checkBefore, cap_penalty)
-
-    props = props/steps*100
+    Plots the learning curve (average reward for each episode)
     
-    if plot == "hist":
-        fig, ax = plt.subplots()
-        cumsum = props[0,:]
-        p = [ax.bar(range(N), cumsum, color=(172/255,255/255,47/255))]
-        for i in range(1,N):
-            p.append(ax.bar(range(N), props[i,:], bottom = cumsum))
-            # p.append(ax.bar(range(N), props[i,:], bottom = cumsum, color = ( (i+1)/N, 1-(i+1)/N, 0 )))
-            cumsum = cumsum + props[i,:]
-
-        plt.ylabel("Proportions")
-        plt.title('Proportion of patients in queues - naive policy')
-        plt.xticks(range(N), ['Queue '+str(i) for i in range(N)] )
-        plt.yticks(np.arange(0, 101, 10))
-        plt.legend(tuple( p[i][0] for i in range(N) ), tuple('Type '+str(i) for i in range(N)))
-        fig.tight_layout()
-
-    elif plot == "map":
-        fig, ax = plt.subplots()
-        im = ax.imshow(props.T, cmap=plt.get_cmap("RdYlGn").reversed())
-        ax.set_xticks(np.arange(N))
-        ax.set_yticks(np.arange(N))
-        # ... and label them with the respective list entries
-        ax.set_yticklabels(["Queue "+str(i) for i in range(N)])
-        ax.set_xticklabels(range(N))
-
-        # Rotate the tick labels and set their alignment.
-        # plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-
-        # Loop over data dimensions and create text annotations.
-        # for i in range(len(vegetables)):
-            # for j in range(len(farmers)):
-                # text = ax.text(j, i, harvest[i, j],
-                       # ha="center", va="center", color="w")
-                       
-        cbar = ax.figure.colorbar(im, ax=ax)
-        
-        ax.set_title("Proportion of patients in queues - naive policy")
-        fig.tight_layout()
-
-    plt.show()
-
-    return props, rewards
-
-def rewards_curve(max_rewards, rand_rewards, sim_rewards, num_episodes, title = "Untitled", i = None, legend = True):
-    # if fig is None:
-    #     fig, ax = plt.subplots(tight_layout = True)
-    # else:
-    #     ax = fig.subplots()
+    Inputs:
+    rand_rewards - Array containing the rewards obtained for a simulation using the random policy
+    sim_rewards  - Array containing the rewards obtained for a simulation using the learned policy (ie learning curve)
+    num_episodes - Int: How many episodes the agent is being trained for
+    max_rewards  - Array full of the theoretical maximum reward, for comparison:
+                   this maximum is system dependent so exercise caution
+    title        - String: Title of the resulting plot
+    legend       - Boolean: Whether the legend and axis labels are shown
+    """
     plt.title(title)
-    # ax.plot(range(num_episodes), sim_rewards, "-b", figure = fig, label = "Learned policy")
-    # ax.plot(range(num_episodes), max_rewards, "-g", figure = fig, label = "$r=0$ line")
-    # ax.plot(range(num_episodes), rand_rewards, "-r", figure = fig, label = "Random policy")
     plt.plot(range(num_episodes), sim_rewards, "-b", label = "Learned policy")
-    #plt.plot(range(num_episodes), max_rewards, "-g", label = "$r=0$ line")
     plt.plot(range(num_episodes), rand_rewards, "-r", label = "Random policy")
+    if max_rewards:
+        plt.plot(range(num_episodes), max_rewards, "-g", label = "Maximum reward")
     if legend:
         plt.legend()
         plt.xlabel("Episodes")
         plt.ylabel("Reward")
 
-    # return ax
+#### EXPERIMENTS ######################################
+def print_extra_info(
+    rewards,
+    cured,
+    number_steps,
+    cured_types,
+    time,
+    info):
+    """
+    Prints out some extra metrics about the process of learning.
+    """
+    print(40*"#")
+    print("Extra data for {}\n\n".format(info))
+    print("\nThe average step reward after the simulation with the fixed Q_weights is : {}"
+      .format(np.mean(rewards)))
+    print("\n{} patients were cured during the simulation of {} steps.\n".format(cured, number_steps))
+    print("Patients cured by types: \n{}\n".format(cured_types))
+    print("Total time waited by the cured patients: {}\n".format(time))
+
+def test(
+    algorithm,
+    capacity_hospital,
+    number_steps,
+    number_episodes,
+    p_arr_prob,
+    doctors,
+    feature,
+    rand_rewards,
+    p_prob_test = None,
+    gamma = 0.9,
+    alpha = None,
+    epsilon = 0.1,
+    plot_type = "hist",
+    title1 = "",
+    title2 = "",
+    earlyRewards = True,
+    capacity_penalty = False):
+    """
+    Inputs
+    ---------
+    algorithm         - sarsa and Q-learning available
+    capacity_hospital - Maximum number of people that could be waiting in all the queues together.
+    number_steps      - Number of steps in an episode that does not terminate earlier than it is supposed to.
+    number_episodes   - Number of episodes
+    p_arr_prob        - Relative probabilities for different patients arriving.
+                        The index in the list corresponds to patient's type.
+                        [1, 1, 4] means that patient of type 0 has a probability of 1/6 to arrive,
+                        while patient of type 2 has a probability of 4/6 to arrive at each step.
+    doctors           - The doctors currently in the hospital. 
+                        Doctor(x, y) means a doctor of type x with a probability of y to cure a patient on any step.
+    feature           - Featurisation of the state.
+    rand_rewards      - Rewards obtained with a random policy
+    p_prob_test       - Relative probabilities for patient arrivals used during testing
+                        (by default, the same as training probabilities)
+    gamma             - Geometric discount factor for rewards
+    alpha             - Learning rate
+    epsilon           - Probability of choosing action randomly
+    plot_type         - Histogram ("hist") and heat map ("heat") available, or anything else for no plot
+    title1, title2    - Title for the plots
+    earlyRewards      - True means the rewards are allocated directly when the patient is sent to a specific queue.
+                        Otherwise rewards are recognized when the patient reaches the doctor.
+    capacity_penalty  - True means when the capacity is reached not only the episode terminates
+                        but there is also a penalty for letting the hospital get full.
+
+    Output
+    ---------
+    Produces 2 plots - one for the best allocation of patients
+        and one for the rewards evolution during the learning process.
+    Some extra information for the leaning process is also printed out.
+    """
+
+    # an instance of the Hospital object (defined in hospital.py)
+    hospital = Hospital(capacity_hospital, doctors, p_arr_prob)
+    
+    # function for the sarsa algorithm.
+    # Q_weights - the weight matrix, 1 weight vector for each action in the simulation
+    # total_reward_per_episode - a list with the reward for each episode
+    # t_list - List of info for when each episode is terminated (if terminated)
+    # --- if alpha = None then alpha is calculated as 1 / number_steps
+    t_list, Q_weights, total_reward_per_episode = algorithm(
+            hospital,
+            feature,
+            gamma,
+            alpha,
+            epsilon,
+            number_episodes,
+            number_steps,
+            earlyRewards,
+            capacity_penalty)
+    
+    
+    # Simulate the learned policy.
+    # props - a matrix for the relative distribution of patients in the queues.
+    # rewards - a list with the reward acquired at each step in the simulation
+    # cured - total number of cured patients during the simulation
+    # time - total time waited by cured patients
+    # cured_types - cured patients by types
+    
+    # If you want to use different patient arrival probabilities for testing, a new hospital is created
+    if p_prob_test is not None:
+        hospital = Hospital(capacity_hospital, doctors, p_prob_test)
+
+    if not(title1):
+        title1 = ("Early" if earlyRewards else "Late")+\
+                 " rewards and "+\
+                 ("a" if capacity_penalty else "no")+\
+                 " capacity penalty"
+
+    props, rewards, cured, time, cured_types = simulate(
+            hospital,
+            feature,
+            Q_weights,
+            steps = number_steps,
+            plot = plot_type,
+            title = title1,
+            checkBefore = earlyRewards,
+            cap_penalty = capacity_penalty)
+    
+    # Below we get reward results for a completely random action taking , i.e. epsilon = 1
+    # t_list_r, Q_optimal_weights_r, total_reward_per_episode_r = algorithm(hospital, feature, 0, 0, 1, number_episodes, number_steps)
+    
+    
+    # A plot that shows the episodic reward evolution during the learning phase
+    # this is also informative of how fast the algorithm is learning
+    # rewards_curve(0, rand_rewards, total_reward_per_episode, number_episodes, title2)
+    
+    
+    # Extra information to be printed for the first figure
+    print_extra_info(rewards, cured, number_steps, cured_types, sum(map(sum, time)), title1)
+    
+    return props, rewards, cured, time, cured_types 
+
+
+def misalloc(props):
+    """Returns proportion of misallocated patients based on a N-by-N array of proportions (see simulate function)"""
+    return np.sum(np.tril(props, -1))

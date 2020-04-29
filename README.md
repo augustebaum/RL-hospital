@@ -49,7 +49,10 @@ For example, a patient with need 0 can be treated by any doctor, but a patient w
 - Look for different q-function approximations (RBFs? Monomials)? (Todor)
 ### Current
 - Better document the code
+  - Format the code to make it readable and concise
+  - Clearly divy up the experiments into folders -- include data files for long experiments (that way the experiment files can be run in short time, but the results in the report can still be visualised using the code)
 - Experiments
+
 
 ## Report Plan
 1. Intro:
