@@ -715,8 +715,8 @@ def rewards_curve(sim_rewards, num_episodes, title = "Untitled", naive_rewards =
     """
     plt.title(title)
     plt.plot(range(num_episodes), sim_rewards, "-b", label = "Learned policy")
-    if naive_rewards:
-        plt.plot(range(num_episodes), naive_rewards, "-r", label = "Random policy")
+    if list(naive_rewards):
+        plt.plot(range(num_episodes), naive_rewards, "-r", label = "Naive policy")
     if max_rewards:
         plt.plot(range(num_episodes), max_rewards, "-g", label = "Maximum reward")
     if legend:
@@ -736,9 +736,7 @@ def print_extra_info(
     Prints out some extra metrics about the process of learning.
     """
     print(40*"#")
-    print("Extra data for {}\n\n".format(info))
-    print("\nThe average step reward after the simulation with the fixed Q_weights is : {}"
-      .format(np.mean(rewards)))
+    print("Extra data for {}\n".format(info))
     print("\n{} patients were cured during the simulation of {} steps.\n".format(cured, number_steps))
     print("Patients cured by types: \n{}\n".format(cured_types))
     print("Total time waited by the cured patients: {}\n".format(time))
@@ -760,7 +758,9 @@ def test(
     title1 = "",
     title2 = "",
     earlyRewards = True,
-    capacity_penalty = False):
+    capacity_penalty = False,
+    reward_evolution = False,
+    naive_rewards = None):
     """
     Inputs
     ---------
@@ -787,6 +787,9 @@ def test(
                         Otherwise rewards are recognized when the patient reaches the doctor.
     capacity_penalty  - True means when the capacity is reached not only the episode terminates
                         but there is also a penalty for letting the hospital get full.
+    reward_evolution  - True means that the function will also plot the rewards for each episode
+    naive_rewards     - True means that the reward_evolution plot will also include the
+                        episodic rewards achieved using the naive rewards.
 
     Output
     ---------
@@ -848,7 +851,11 @@ def test(
     
     # A plot that shows the episodic reward evolution during the learning phase
     # this is also informative of how fast the algorithm is learning
-    # rewards_curve(total_reward_per_episode, number_episodes, title2)
+    if reward_evolution:
+        rewards_curve(total_reward_per_episode,
+                      number_episodes,
+                      title2,
+                      naive_rewards)
     
     
     # Extra information to be printed for the first figure
