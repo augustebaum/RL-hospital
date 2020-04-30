@@ -147,10 +147,10 @@ def generate(p_array, number_tries):
 
 def errors(arr):
     """
-    Distance from median to 20th and 70th percentile, for error bars
+    Distance from median to 20th and 80th percentile, for error bars
     """
     a = np.median(arr, axis=0)
-    return a, np.abs(np.quantile(arr, [0.20, 0.70], axis=0) - a)
+    return a, np.abs(np.quantile(arr, [0.20, 0.80], axis=0) - a)
 
 
 def plot_errorbar(points_array, label):
