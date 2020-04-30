@@ -750,7 +750,7 @@ def test(
     p_arr_prob,
     doctors,
     feature,
-    rand_rewards,
+    rand_rewards = None,
     p_prob_test = None,
     gamma = 0.9,
     alpha = None,
