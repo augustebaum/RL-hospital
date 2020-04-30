@@ -21,21 +21,22 @@ number_of_experiments -> defines how many times the learning process is repeated
                          a significant number of experiments (100 for each feature) so that it is accurate.
                       -> Note that that the runtime for 100 experiments on a certain feature might take up to 5 minutes
 number_of_experiments -> initially set to 10  -  Data in report histogram taken after 100 for each feature
+run_naive_policy      -> if a patient is of type X then they are assigned to a doctor of type X
 """
 
-run_each_featurisation_once_and_plot = True
+run_each_featurisation_once_and_plot = False
 run_feature_1 = False
 run_feature_7 = False
 run_feature_12 = False
-
-number_of_experiments = 10
+run_naive_policy = False
+number_of_experiments = 100
 
 
 ##############################################################################
 ##############################################################################
 ##############################################################################
 
-# these are the realtive probabilites of each patient arriving - the index in 
+# these are the relative probabilites of each patient arriving - the index in 
 # the list corresponds to the patient's type. If we had a list [1,2,4] then this would mean
 # that patients of type 0 have a probability of 1/7 to visit the hospital on 
 # any given step, patients of type 1 - probability of 2/7 and type 2 - 4/7
@@ -58,10 +59,6 @@ number_of_episodes = 100
 hospital_r = Hospital(capacity, doctors_1, p_arr_prob)
 # t_list_r, Q_optimal_weights_r, total_reward_per_episode_r = sarsa(hospital_r, feature_7, 0, 0, 1, number_of_episodes, number_of_steps)
 
-# Run hospital with the naive policy for number_steps steps
-# Record allocations and plot heatmap
-p_naive, r_naives, *rest = simulate(hospital_r, naive = True, steps = number_of_steps, plot = "hist", title = "Naive policy patient allocation")
-print("\nThe total reward after the simulation with naive policy:", sum(r_naives))
 
 # sets the currently needed parameters in the "test" function 
 # to reduce the code
@@ -78,7 +75,7 @@ def feature_experiment(num_exp, featurisation, plot = None, rew_graph = False, n
                                     p_arr_prob = p_arr_prob,
                                     doctors = doctors_1,
                                     feature = featurisation,
-                                    rand_rewards = r_naives,
+                                    rand_rewards = None,
                                     gamma = 0.9,
                                     alpha = None,
                                     epsilon = 0.1,
@@ -104,11 +101,11 @@ def feature_experiment(num_exp, featurisation, plot = None, rew_graph = False, n
 
 if run_each_featurisation_once_and_plot:
     
-    feature_experiment(1, feature_1, plot = "hist", rew_graph = True, naive_rew = r_naives, 
+    feature_experiment(1, feature_1, plot = "hist", rew_graph = True, 
                        tit1 = "feature_1 patient allocation", tit2 = "feature_1 rewards during learning")
-    feature_experiment(1, feature_7, plot = "hist", rew_graph = True, naive_rew = r_naives,
+    feature_experiment(1, feature_7, plot = "hist", rew_graph = True,
                        tit1 = "feature_7 patient allocation", tit2 = "feature_7 rewards during learning")
-    feature_experiment(1, feature_12, plot = "hist", rew_graph = True, naive_rew = r_naives,
+    feature_experiment(1, feature_12, plot = "hist", rew_graph = True,
                        tit1 = "feature_12 patient allocation", tit2 = "feature_12 rewards during learning")
 
 
@@ -123,12 +120,20 @@ elif run_feature_7:
 elif run_feature_12:
     feature_experiment(number_of_experiments, feature_12, tit1 = "feature 12 current experiment")
 
-
-
-
-
-
-
+elif run_naive_policy:
+    reward_list = []
+    for experiment in range(number_of_experiments):
+        if experiment == 0:
+            plot = "hist"
+        else:
+            plot = False
+        p_naive, r_naives, *rest = simulate(hospital_r, naive = True, steps = number_of_steps, plot = plot)
+        reward_list.append(sum(r_naives))
+    print("The list with the rewards", reward_list)
+    print("The average reward after {} experiments is {}".format(number_of_experiments, np.mean(reward_list)))
+    print("The median is {}".format(np.median(np.array(reward_list))))
+    print("The standard deviation is {}".format(np.std(np.array(reward_list))))
+        
 
 
 
