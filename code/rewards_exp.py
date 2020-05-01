@@ -40,6 +40,7 @@ def generate(n_iter, number_steps, number_episodes):
     # Save to file for further analysis
     np.savez(
         os.path.dirname(os.path.realpath(__file__))
+        # Warning: this only works on *nix
         + "/exp3/exp3_"
         + str(number_episodes)
         + "episodes_"
@@ -61,19 +62,16 @@ def test_exp(
     number_steps=100,
     number_episodes=100
 ):
-    x, *_ = test(
+    _, _, _, times, _ = test(
         algorithm,
         capacity_hospital=100,
         number_steps=number_steps,
         number_episodes=number_episodes,
-        p_arr_prob=[1, 1, 1, 1, 1, 1],
+        p_arr_prob=[1, 1, 1],
         doctors=[
             Doctor(0, 0.1),
             Doctor(1, 0.1),
-            Doctor(2, 0.9),
-            Doctor(3, 0.1),
-            Doctor(4, 0.5),
-            Doctor(5, 0.1),
+            Doctor(2, 0.1),
         ],
         feature=feature_7,
         rand_rewards=0,
@@ -86,7 +84,7 @@ def test_exp(
         earlyRewards=earlyRewards,
         capacity_penalty=capacity_penalty,
     )
-    return misalloc(x)
+    return np.median(list(map(lambda l: np.median(l), times)))
 
 
 def errors(arr):
@@ -116,8 +114,8 @@ def plot(arraySarsa, arrayQL):
     p2 = ax.bar(ind + width, QL_points[0], width, yerr=QL_points[1], label="Q-learning")
     # p2 = ax.bar(ind + width, QLMeans, width, yerr=QLStds, label="Q-Learning")
 
-    ax.set_ylabel("Frequency Rate")
-    ax.set_title("Frequency rate of misallocation")
+    ax.set_ylabel("Median waiting time")
+    # ax.set_title("Frequency rate of misallocation")
     ax.set_xticks(ind + width / 2)
     ax.set_xticklabels(("TT", "TF", "FT", "FF"))
     ax.legend()
@@ -145,6 +143,6 @@ def autolabel(rects, ax, xpos="center"):
         )
 
 
+
 if __name__ == "__main__":
-    print(os.getcwd())
     main(number_tries=1, number_episodes=50, number_steps=100)
