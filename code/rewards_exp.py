@@ -4,6 +4,7 @@ from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+import os
 
 
 """ Bar plot code (including `autolabel` function) obtained from:https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
@@ -38,7 +39,8 @@ def generate(n_iter, number_steps, number_episodes):
 
     # Save to file for further analysis
     np.savez(
-        "exp3/exp3_"
+        os.path.dirname(os.path.realpath(__file__))
+        + "/exp3/exp3_"
         + str(number_episodes)
         + "episodes_"
         + str(number_steps)
@@ -144,4 +146,5 @@ def autolabel(rects, ax, xpos="center"):
 
 
 if __name__ == "__main__":
-    main(number_tries=5, number_episodes=50, number_steps=100)
+    print(os.getcwd())
+    main(number_tries=1, number_episodes=50, number_steps=100)

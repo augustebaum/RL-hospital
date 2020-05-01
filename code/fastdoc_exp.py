@@ -7,6 +7,7 @@ from tikzplotlib import save as tikz_save
 
 # For detecting the extra arguments
 import sys
+import os
 
 # For formatting the text using tex (used in report)
 # from matplotlib import rc
@@ -133,7 +134,8 @@ def generate(p_array, number_tries):
 
     # Save to file for further analysis
     np.savez(
-        "exp2/feature_12--"
+        os.path.dirname(os.path.realpath(__file__))
+        + "/exp2/exp2--"
         + str(number_episodes)
         + "episodes"
         + str(number_steps)
