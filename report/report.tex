@@ -15,6 +15,8 @@
 \usepackage{float}
 % For in-text links
 \usepackage{hyperref}
+% For figure captions
+\usepackage[font={small,it,sf},hypcap=true]{caption}
 % for bar plots
 \usepackage{pgfplots}
 \usepackage{changepage}
@@ -100,7 +102,7 @@ For example, a doctor of type 1 can treat a patient with priority 1 or lower, bu
 In general, if the highest doctor type is $N$ at initialisation, then it is expected that there be at least one doctor of each type $n\in \{0,1,\ldots,N\}$.
 Each \emph{type of} doctor has an associated queue, hence thereafter we call ``queue $n$'' the unique queue which doctors of type $n$ draw from.
 Newly arrived patients have needs sampled from $\{0,1,\ldots,N\}$ according to a known distribution and are allocated to a given queue in $\mathcal{A}=\{0,1,\ldots,N\}$ by an agent following a policy $\pi$.
-Note that, once allocated, a patient may not change queues, though they \emph{may be allocated to a doctor who cannot treat them} (see Fig. \ref{fig:hospital_diagram}).
+Note that, once allocated, a patient may not change queues, though they \emph{may be allocated to a doctor who cannot treat them} (see \autoref{fig:hospital_diagram}).
 Once they are received by a doctor, if there is a discrepancy, the patient is sent away.
 
 The state space is considered discrete, for simplicity. At each time step:
@@ -130,7 +132,7 @@ Similarly, though this study started with one queue \emph{per doctor} rather tha
 \end{figure}
 
 One of the challenges associated with learning a policy to set balanced priorities between curing patients and keeping the hospital from getting too full.
-Because of the behaviour of misallocated patients (see Fig. \ref{fig:hospital_diagram}), it can be more efficient for the agent to just misallocate patients from the start so as to keep the hospital empty.
+Because of the behaviour of misallocated patients (see \autoref{fig:hospital_diagram}), it can be more efficient for the agent to just misallocate patients from the start so as to keep the hospital empty.
 
 The agent's actions tend to have very delayed consequences, which makes it difficult for it to link rewards and policy.
 Further, originally the penalty for misallocation was set to trigger only when patients reached the doctor.
@@ -264,30 +266,37 @@ Also some plot about allocation/misallocation of patients
 In this experiment, we try to characterise the behaviour of the agent in ambiguous situations.
 The hospital has four doctors, of types 0 through 3. Doctor 3 (the most highly skilled) is very efficient (80\% chance of treating a patient at each time step), while lower skilled doctors are equally slow (40\%).
 
-We set the featurisation to \texttt{feature\_12}, the learning algorithm to SARSA and the reward system to penalise misallocations early and not penalise when occupancy is reached, as these seem to yield better performance overall.
+We set the featurisation to \texttt{feature\_12}, the learning algorithm to SARSA and the reward system to penalise misallocations early and not penalise when occupancy is reached, as these seem to yield better performance overall. These assumptions are the object of experiments 1 and 3.
 New patients are equally likely to be of type 0, 1 or 2. 
-
 We vary the probability of type 3 patient arrivals during training, from 10\% to 90\%.
 When there are few urgent patients, we would expect the agent to allocate many low priority patients to doctor 3 because it treats more quickly. However, when there are many, allocating low-priority patients to doctor 3 causes type 3 patients to wait longer, which is detrimental to the reward.
 
 For each data point, we train an agent on a hospital with a given arrival probability and then apply the learned policy to a hospital with \emph{equiprobable} arrivals so that policies can be compared on equal footing. 
 We record the proportion of patients of type 3 allocated to queue 3, the \emph{overall} proportion of patients allocated to queue 3, and the average time waited by a patient that has seen a doctor.
 
-We start by running a ``short-term'' trial, in which for each data point, an agent learns for 50 episodes which are 500 steps long.
-The results are shown in \autoref{fig:fast_doc_short}.
+We start by running a ``short-term'' trial, in which for each probability, the simulation (training and testing) was carried out 300 times; for each simulation the agent was trained for 50 episodes with 500 steps each.The results are shown in \autoref{fig:fast_doc}.
 
 We mentioned earlier that we should compare policies on an equal footing. However, this is not necessarily possible considering the agent might not have had equal access to each state in each circumstance: when type 3 patients arrive 90\% of the time, the agent gets little experience with treating lower priority patients.
-In this case, since patients of type 3 can only be put in queue 3 (any other would result in misallocation), the agent learns to put any arriving patient in queue 3, irrespective of their type: this is reflected in \autoref{fig:fast_doc_short}.
+In this case, since patients of type 3 can only be put in queue 3 (any other decision would result in a misallocation penalty), the agent learns to put any arriving patient in queue 3, irrespective of their type: this is reflected in \autoref{fig:fast_doc}.
 
+Yet, the behaviour for low probability agrees with our predictions.
 \begin{figure}[H]
     \centering
     % \includegraphics{figures/???}
     \resizebox{\columnwidth}{!}{
     \input{figures/exp2_queues_short.tex}
     }
-    \caption{Behaviour of agent as priorities change. For each probability, the simulation (training and testing) was carried out 300 times; for each simulation the agent was trained for 50 episodes with 500 steps each.}
-    \label{fig:fast_doc_short}
+    \caption{Proportion of patients allocated to queue 3 as priorities change. Error bars show $20^\text{th}$ and $80^\text{th}$ percentile (to represent the high skew). Points are artificially offset for readability.}
+    \label{fig:fast_doc}
 \end{figure}
+
+In response to this extraneous, though predictable behaviour, we also ran a ``long-term'' trial, with the same parameters and training lasting 150 episodes instead of 50.
+This way, the model can gather more meaningful experience with each type of patient during training, even when arrivals of some patient type are sparse.
+For each point, the simulation was carried out 100 times (which took around 4 processor hours on a modern laptop).
+The result is in \autoref{fig:fast_doc}.
+
+It would seem that in general the agent is more cautious about allocating patients to queue 3, particularly when urgent patients are frequent (the probability is about 25\%, which corresponds to only the type 3 patients being put in queue 3).
+This is 
 
 \subsection{Experiment 3: Penalty check (code in \texttt{rewards\_exp.py})}
 Experiment 3 tests and compares the efficiency of queues with different combinations of two penalties, i.e. the penalty for misallocation (\texttt{earlyRewards}) and the penalty for reaching the occupancy of the hospital (\texttt{capacity\_penalty}). When the former one is true, the penalties, proportional to time waited, are issued directly and immediately when a patient is sent to a specific queue incorrectly before the patient reaches the doctor. When the later one is true, it means that a penalty for inefficiency, which is extremely large, should be taken into account when the maximum capacity of the hospital is reached either at or before the episode terminates.
