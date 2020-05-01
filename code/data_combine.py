@@ -18,5 +18,5 @@ if __name__ == "__main__":
         dict.close()
 
     print(np.shape(data[0]))
-    # np.savez("exp2/feature_12--"+str(number_episodes)+"episodes"+str(number_steps)+"steps"+datetime.now().strftime("%H-%M-%S"), *data)
-    np.savez("exp2/feature_12combined", *data)
+    np.savez("exp2/feature_12-combined-150episodes500steps", *data)
+    # np.savez("exp2/feature_12combined", *data)

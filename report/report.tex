@@ -15,6 +15,12 @@
 \usepackage{float}
 % For in-text links
 \usepackage{hyperref}
+% for bar plots
+\usepackage{pgfplots}
+\usepackage{changepage}
+\usepackage{tikz}
+\usepackage{pgf}
+\usetikzlibrary{graphs, shapes}
 
 \newcommand{\note}[1]{\textbf{#1}}
 
@@ -112,8 +118,12 @@ In this study, we restrict ourselves one doctor per type, as this still offers a
 Similarly, though this study started with one queue \emph{per doctor} rather than per \emph{type} of doctor, we simplified the system after discussions with the module administrators and TAs.
 
 \begin{figure}
-    \centering
-    \includegraphics[width=0.9\columnwidth]{figures/hospital.pdf}
+  \centering
+    \begin{adjustwidth}{-0.2cm}{}
+    \resizebox{\columnwidth}{!}{%
+        \input{figures/hospital.tex}
+    }
+    \end{adjustwidth}
     \caption{A hospital with 4 doctors: two of type 0 ($D_0$ and $D_1$, green), one of type 1 ($D_2$, orange) and one of type 2 ($D_3$, red). A newly arrived patient with priority 1 is being allocated to a queue according to policy $\pi$.
     Note the priority 2 patient mistakenly sent to queue 0; they will not be sent away until they have reached the end of the queue.}
     \label{fig:hospital_diagram}
@@ -127,11 +137,11 @@ Further, originally the penalty for misallocation was set to trigger only when p
 This mechanic was modified midway through the project to investigate its effect, and this will be the subject of Experiment 3.
 
 \subsection{Learning}
-Two well-known algorithms of RL are the Q-learning (QL) and the SARSA algorithms. \cite{sutton2018reinforcement}
+Two well-known algorithms of RL are the $Q$-learning (QL) and the SARSA algorithms. \cite{sutton2018reinforcement}
 SARSA is an on-policy algorithm,
 meaning the agent learns the value of the state-action pair on the basis of the performed action.
 By contrast, QL is an off-policy algorithm, where the state-action-value function (or \textit{q}-function) is estimated based on a greedy policy, which is not necessarily the currently implemented policy.
-Generally, SARSA tends to exhibit faster convergence, while the performance of Q-learned policies tend to be higher. 
+Generally, SARSA tends to exhibit faster convergence, while the performance of $Q$-learned policies tend to be higher. 
 However, in SARSA the learner can easily get stuck in local minima, and QL tends to take longer to converge.
 
 \subsection{Featurisation}
@@ -182,7 +192,7 @@ In this work, the systems of interest will be:
 %    \item Off-Policy: The learning agent learns the value function according to the action derived from another policy.\cite{sutton2018reinforcement}
 %\end{itemize}
 %Sarsa (State-Action-Reward-State-Action) algorithm is an on-policy algorithm, which follows the policy it is evaluating. It uses the action performed by the current policy to learn the Q-value.
-%Q-learning algorithm is slightly different from SARSA. Q-learning technique is an off-policy technique and uses the greedy approach to learning the Q-value.
+%$Q$-learning algorithm is slightly different from SARSA. $Q$-learning technique is an off-policy technique and uses the greedy approach to learning the Q-value.
 %
 %\subsubsection{Sarsa}
 %Equation of Sarsa can be described as:
@@ -206,7 +216,7 @@ In this work, the systems of interest will be:
 %6. Evaluate the performance\\
 %7. Visualisation of result
 %\subsubsection{Q-Learning}
-%Q-learning is an off-policy algorithm for TD learning. It learns the optimal policy even when actions are selected based on a more exploratory or even random policy. Its equation can be introduced as:
+%$Q$-learning is an off-policy algorithm for TD learning. It learns the optimal policy even when actions are selected based on a more exploratory or even random policy. Its equation can be introduced as:
 %
 %\[\hat{q}(s_t,a_t)\leftarrow \hat{q}(s_t,a_t) + \alpha\left[r_{t+1}+\gamma \max_{a}\hat{q}(s_{t+1},a)-\hat{q}(s_t,a_t)\right] \]
 %
@@ -216,67 +226,87 @@ In this work, the systems of interest will be:
 
 \section{Results}
 
-\subsection{Experiment 1: Featurisations}
+\subsection{Experiment 1: Featurisations \\*(code in \texttt{feat\_exp.py})}
 
-Here we demonstrate how the importance of the choice of feature vector.
-The feature vectors below generally fall into two categories: one-hot vectors (featurisations 7-12) and non-one-hot vectors (featurisations 1-6).
-These can be found in the \texttt{learning.py} file.
-EXPLAIN EXPERIMENTAL CONDITIONS: which reward system, how many tests for each featurisation, which learning algo... try to justify choices
+In this experiment, we compare the performance of different featurisations. The hospital has six doctors, of types 0 through 5. Here, doctors 0,1,4 are inefficient (0.1), doctors 3,5 are efficient(0.4 and 0.5, respectively) and  doctor 2 is highly efficient(0.9). The system is deliberately complex, so that patient allocation is not trivial, but still intuitive for an observer. Patients of different types arrive with equal probability. Here we use the SARSA algorithm, but this is not a siginificant choice since our main concern are the featurisations. Furthermore, the learning process consists of 100 episodes with 100 steps each. The learning process is repeated 100 times for each feature so that we can get consistent data. This is essential since our model incorporates a certain level of randomness.
 
-The data shown in \autoref{tbl:feat} implies that one-hot vectors are clearly the better choice since most of them achieve close to maximum reward. The upper bound of the reward in these simulations is 10 000. However, the difference between individual one-hot featurisations can also be significant.
+The most important characteristic of the current model, apart from the definition of the used featurisation, is the reward system. This system has undergone many iterations before its current state and is perhaps not perfect. Nevertheless, it produces stable and logical results, as far as our data shows. If a patient is allocated to a queue of a doctor who cannot treat them then a penalty proportional to the the type of the patient is immediately recognized, but the patient continues to wait in the queue. The only other time when a reward is assigned is when a patient reaches a doctor. No matter whether the patient can or cannot be treated by the doctor a penalty directly proportional to the waited time and patient's type is recognized. However, if the patient can be treated then a further constant positive reward is recognized as well. The fact that a penalty is immediately  received if a patient is sent to an inappropriate queue is a strong indicator for our better featurisations and they would not really allow this to happen. The constant positive reward for a treated patient mitigates misallocation of patients as well. Before it was introduced the system was occasionally willing to assign patient to wrong (but empty)
+queues and in that way get rid of them faster and with small penalty.
 
-Feature 12 appears to be the clear winner.It does not only achieve a higher reward on average but is also more consistent (given the lower deviation).The information that it takes into account is the level of sickness of the next patient to be allocated, the wait time for the first patient on each queue and the number of patients by types in each queue.
-
-Mb should add a picture of the histogram of the allocated patients? reward evolution ?
-Adding/removing some parameters in the table ?
+Finally, it is time to take the features into consideration. We have created a variety of featurisations and they can all be found in \texttt{learning.py} file. They generally fall into two categories: one-hot vectors (featurisations 7-12) and non-one-hot vectors (featurisations 1-6). We note that feature 1 is the best performer from the non-one-hot ones and still it appears to be just as good as the simple naive policy. Given this, the data shown in the bar plot below implies that one-hot vectors are the better choice(the upper bound of the total reward is 10 000 in this experiment).
 
 
 
-The table below presents useful statistics about some of the featurisations.Each experiment is conducted 
-100 times in order to obtain this data.
-\begin{table}[H]
-    \centering 
-    \begin{tabular}{|l|l|l|l|}
-    \hline
-    Rewards & Mean & Median & Std.dev \\
-    \hline
-     feature 12 & 9260 & 9478 & 647 \\
-    \hline
-    feature 7 & 9041 & 9357 & 1247 \\
-    \hline
-    feature 8 & 8698 & 9141 & 1362 \\
-    \hline
-    feature 9 & 9067 & 9485 & 1072 \\
-    \hline
-    feature 10 & 941 & 1636 & 2540 \\
-    \hline
-    feature 11 & 8876 & 9523 & 1532 \\
-    \hline
-    feature 1 & 6953 & 7182 & 1271 \\
-    \hline 
-    \end{tabular}
-    \caption{Rewards depending on the featurisation}
-    \label{tbl:feat}
-\end{table}
+\pgfplotsset{width=8cm,compat=1.8}
+\begin{figure}
+    \centering
+
+\begin{adjustwidth*}{-0.2cm}{}
+    \input{figures/figure.tex}
+    \caption{Caption}
+    \label{fig:my_label}
+
+\end{adjustwidth*}
+\end{figure}
+
+\texttt{Feature 1} description, discussion TBI
+
+\texttt{Feature 7} description, discussion TBI
+
+\texttt{Feature 12} description, discussion TBI
+
+Will add a plot for the reward evolution of all the features perhaps
+
+Also some plot about allocation/misallocation of patients
+
 
 \subsection{Experiment 2: Model behaviour (code in \texttt{fastdoc\_exp.py})}
- In this experiment, we try	to characterise the behaviour of the agent in ambiguous situations.
-The hospital has four doctors, of types 0 through 3. Doctor 3 (the most highly skilled) is also very efficient, while lower skilled doctors are equally slow.
+In this experiment, we try to characterise the behaviour of the agent in ambiguous situations.
+The hospital has four doctors, of types 0 through 3. Doctor 3 (the most highly skilled) is very efficient (80\% chance of treating a patient at each time step), while lower skilled doctors are equally slow (40\%).
 
-\note{TBD}
-We set the featurisation to \texttt{feature\_12}, the learning algorithm to SARSA and a reward system to penalise misallocations early and not penalise when occupancy is reached, as these seem to yield better performance overall.
+We set the featurisation to \texttt{feature\_12}, the learning algorithm to SARSA and the reward system to penalise misallocations early and not penalise when occupancy is reached, as these seem to yield better performance overall.
+New patients are equally likely to be of type 0, 1 or 2. 
 
-Then, we gradually increase the frequency of type 3 patients.
-When there are few, the agent should allocate many low priority patients to doctor 3 because it treats more quickly. However, when there are many, allocating low-priority patients to doctor 3 causes type 3 patients to wait longer, so we expect a decrease in total allocations to queue 3.
+We vary the probability of type 3 patient arrivals during training, from 10\% to 90\%.
+When there are few urgent patients, we would expect the agent to allocate many low priority patients to doctor 3 because it treats more quickly. However, when there are many, allocating low-priority patients to doctor 3 causes type 3 patients to wait longer, which is detrimental to the reward.
 
-The results are shown in \autoref{fig:fast_doc}
+For each data point, we train an agent on a hospital with a given arrival probability and then apply the learned policy to a hospital with \emph{equiprobable} arrivals so that policies can be compared on equal footing. 
+We record the proportion of patients of type 3 allocated to queue 3, the \emph{overall} proportion of patients allocated to queue 3, and the average time waited by a patient that has seen a doctor.
+
+We start by running a ``short-term'' trial, in which for each data point, an agent learns for 50 episodes which are 500 steps long.
+The results are shown in \autoref{fig:fast_doc_short}.
+
+We mentioned earlier that we should compare policies on an equal footing. However, this is not necessarily possible considering the agent might not have had equal access to each state in each circumstance: when type 3 patients arrive 90\% of the time, the agent gets little experience with treating lower priority patients.
+In this case, since patients of type 3 can only be put in queue 3 (any other would result in misallocation), the agent learns to put any arriving patient in queue 3, irrespective of their type: this is reflected in \autoref{fig:fast_doc_short}.
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics{figures/???}
+    \resizebox{\columnwidth}{!}{
+    \input{figures/exp2_queues_short.tex}
+    }
+    \caption{Behaviour of agent as priorities change. For each probability, the simulation (training and testing) was carried out 300 times; for each simulation the agent was trained for 50 episodes with 500 steps each.}
+    \label{fig:fast_doc_short}
+\end{figure}
+
+\subsection{Experiment 3: Penalty check (code in \texttt{rewards\_exp.py})}
+Experiment 3 tests and compares the efficiency of queues with different combinations of two penalties, i.e. the penalty for misallocation (\texttt{earlyRewards}) and the penalty for reaching the occupancy of the hospital (\texttt{capacity\_penalty}). When the former one is true, the penalties, proportional to time waited, are issued directly and immediately when a patient is sent to a specific queue incorrectly before the patient reaches the doctor. When the later one is true, it means that a penalty for inefficiency, which is extremely large, should be taken into account when the maximum capacity of the hospital is reached either at or before the episode terminates.
+
+Figure 4 depicts the distribution of the frequency rate of misallocation with capacity = 100, steps =100, episodes =10. It can be thus inferred that SARSA contains a higher rate of misallocation than Q-Learning does, indicating that Q-Learning might have a better performance in improving the efficiency of queues. The standard deviations of SARSA are relatively large, which also shows that the output values of SARSA are spread out over a wider range.
+
+This experiment also compares the results when we apply two different rewards. Firstly, we create early reward in our model. When it is true, the rewards are allocated directly when the patient is sent to a specific queue, which represents that the patients in hospital are allocated to each queue timely. Its rewards are calculated proportionally according to the waiting time of patients.
+Besides, there is a penalty for full capacity of hospital. Capacity penalty equals True means when the capacity is reached not only the episode terminates but also the  maximum capacity of hospital. In \texttt{hospital.py} file, we create a function to compare the length of all the queues to the occupancy of hospital. Large number of negative reward is accumulated if the former is bigger. 
+In experiment 3, early rewards and capacity penalty are divided into four categories. As showed in Figure 3, TT, TF, FT and FF stand for true or false of early rewards and capacity penalty respectively. For example, TF means early rewards equals true and capacity penalty equals false.
+
+Figure 3 summarizes the performance of Sarsa and Q learning with early reward and capacity penalty. X-axis can be explained as their status of applying penalties and y-axis is the occurrence frequency of misallocation of patients in hospital. Black line in the middle of each bar represents standard deviation of input values. Overall, Sarsa algorithm has higher probability to misallocate patients in the wrong queues than Q learning. In addition, large frequency appears when we only apply capacity penalty or not request both early reward and capacity penalty.
 
 \begin{figure}
     \centering
-    % \includegraphics{figures/???}
-    \caption{Behaviour of agent as priorities change. For each probability, the agent was trained for ??? episodes with ??? steps each.}
-    \label{fig:fast_doc}
+    \includegraphics[width=0.9\columnwidth]{figures/misallocation.png}
+    \caption{The frequency rate of misallocation}
+    \label{fig:penalty_diagram}
 \end{figure}
+
 
 \section{Discussion}
 

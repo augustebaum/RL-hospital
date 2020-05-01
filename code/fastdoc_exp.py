@@ -9,9 +9,9 @@ from tikzplotlib import save as tikz_save
 import sys
 
 # For formatting the text using tex (used in report)
-from matplotlib import rc
+# from matplotlib import rc
 
-rc("text", usetex=True)
+# rc("text", usetex=True)
 # For exporting variables to file
 from datetime import datetime
 
@@ -61,13 +61,15 @@ def generate(p_array, number_tries):
     feature = feature_12  # One-hot
     capacity_hospital = 500
     number_steps = 500
-    number_episodes = 50
+    number_episodes = 150
     algorithm = sarsa
 
     # Number of people in queue 3 for each p
     # Number of people in queue 3 that are of type 3 for each p
     # Average amount of time type 3 patients waited for
-    (queue3, queue3type3, time3) = tuple(np.empty([number_tries, len(p_array)]) for _ in range(3))
+    (queue3, queue3type3, time3) = tuple(
+        np.empty([number_tries, len(p_array)]) for _ in range(3)
+    )
 
     ###############################################
 
@@ -90,12 +92,12 @@ def generate(p_array, number_tries):
 
         # this hospital object used only to calculate the random rewards list
         # Not very useful
-        hospital_r = Hospital(capacity_hospital, doctors, [1, 1, 1, 1])
+        # hospital_r = Hospital(capacity_hospital, doctors, [1, 1, 1, 1])
 
         # Random policy (total_reward_per_episode_r is needed in `test`)
-        t_list_r, Q_optimal_weights_r, total_reward_per_episode_r = algorithm(
-            hospital_r, feature, 0, 0, 1, number_episodes, number_steps
-        )
+        # t_list_r, Q_optimal_weights_r, total_reward_per_episode_r = algorithm(
+            # hospital_r, feature, 0, 0, 1, number_episodes, number_steps
+        # )
 
         # Run hospital with the naive policy for number_steps steps
         # Record allocations and plot heatmap
@@ -185,6 +187,7 @@ def plot(queue3, queue3type3, time3, p_array):
     plt.legend()
     plt.xlabel("Probability that arriving patient has type 3 during training")
     plt.tight_layout()
+    tikz_save('exp2_queues_short.tex')
 
     plt.figure(2)
     plot_errorbar(errors(time3), "Average time waited by (cured) type 3 patients")
@@ -193,13 +196,9 @@ def plot(queue3, queue3type3, time3, p_array):
     plt.xlabel("Probability that arriving patient has type 3 during training")
     plt.tight_layout()
 
-    plt.show()
-    # tikz_save('test.tex')
+    # plt.show()
+    tikz_save('exp2_time_short.tex')
 
 
 if __name__ == "__main__":
-    main(number_tries=2)
-
-
-
-
+    main(number_tries=25)
