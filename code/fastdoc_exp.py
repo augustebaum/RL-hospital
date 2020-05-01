@@ -97,7 +97,7 @@ def generate(p_array, number_tries):
 
         # Random policy (total_reward_per_episode_r is needed in `test`)
         # t_list_r, Q_optimal_weights_r, total_reward_per_episode_r = algorithm(
-            # hospital_r, feature, 0, 0, 1, number_episodes, number_steps
+        # hospital_r, feature, 0, 0, 1, number_episodes, number_steps
         # )
 
         # Run hospital with the naive policy for number_steps steps
@@ -189,7 +189,7 @@ def plot(queue3, queue3type3, time3, p_array):
     plt.legend()
     plt.xlabel("Probability that arriving patient has type 3 during training")
     plt.tight_layout()
-    tikz_save('exp2_queues_short.tex')
+    tikz_save("exp2_queues_short.tex")
 
     plt.figure(2)
     plot_errorbar(errors(time3), "Average time waited by (cured) type 3 patients")
@@ -199,7 +199,7 @@ def plot(queue3, queue3type3, time3, p_array):
     plt.tight_layout()
 
     # plt.show()
-    tikz_save('exp2_time_short.tex')
+    tikz_save("exp2_time_short.tex")
 
 
 if __name__ == "__main__":
