@@ -21,6 +21,12 @@ def main(number_tries=5, number_episodes=100, number_steps=100):
         data = tuple(map(lambda x: x[1], dict.items()))
         dict.close()
 
+	# Just in case there are NaN
+    # for arr in data:
+        # arr = arr[~np.isnan(arr).any(axis=1)]
+
+    data = map(lambda arr: arr[~np.isnan(arr).any(axis=1)], data)
+
     plot(*data)
 
 
@@ -84,7 +90,7 @@ def test_exp(
         earlyRewards=earlyRewards,
         capacity_penalty=capacity_penalty,
     )
-    return np.median(list(map(lambda l: np.median(l), times)))
+    return np.median(list(map(lambda l: np.median(l) if len(l)>0 else 0, times)))
 
 
 def errors(arr):

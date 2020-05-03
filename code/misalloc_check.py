@@ -1,5 +1,6 @@
 from hospital import *
 from learning import *
+
 from datetime import datetime
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,6 +11,9 @@ import os
 """ Bar plot code (including `autolabel` function) obtained from:https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
 """
 
+
+feature = feature_12
+algorithm = sarsa
 # conditions = [(True, True), (True, False), (False, True), (False, False)]
 
 
@@ -64,7 +68,7 @@ def test_exp(
     number_steps=100,
     number_episodes=100
 ):
-    _, _, _, times, _ = test(
+    props, *_ = test(
         algorithm,
         capacity_hospital=100,
         number_steps=number_steps,
@@ -75,7 +79,7 @@ def test_exp(
             Doctor(1, 0.1),
             Doctor(2, 0.1),
         ],
-        feature=feature_7,
+        feature=feature,
         rand_rewards=0,
         gamma=0.9,
         alpha=None,
@@ -86,7 +90,7 @@ def test_exp(
         earlyRewards=earlyRewards,
         capacity_penalty=capacity_penalty,
     )
-    return np.median(list(map(lambda l: np.median(l), times)))
+    return misalloc(props)
 
 
 def errors(arr):
@@ -97,54 +101,58 @@ def errors(arr):
     return a, np.abs(np.quantile(arr, [0.20, 0.80], axis=0) - a)
 
 
-def plot(arraySarsa, arrayQL):
-    # SarsaMeans = np.mean(arraySarsa, axis=0)
-    # SarsaStds = np.std(arraySarsa, axis=0)
-
-    # QLMeans = np.mean(arrayQL, axis=0)
-    # QLStds = np.std(arrayQL, axis=0)
-
-    Sarsa_points = errors(arraySarsa)
-    QL_points = errors(arrayQL)
-
-    fig, ax = plt.subplots()
-
-    ind = np.arange(4)  # the x locations for the groups
-    width = 0.3  # the width of the bars
-
-    p1 = ax.bar(ind, Sarsa_points[0], width, yerr=Sarsa_points[1], label="SARSA")
-    p2 = ax.bar(ind + width, QL_points[0], width, yerr=QL_points[1], label="Q-learning")
-    # p2 = ax.bar(ind + width, QLMeans, width, yerr=QLStds, label="Q-Learning")
-
-    ax.set_ylabel("Median waiting time")
-    # ax.set_title("Frequency rate of misallocation")
-    ax.set_xticks(ind + width / 2)
-    ax.set_xticklabels(("TT", "TF", "FT", "FF"))
-    ax.legend()
-
-    autolabel(p1, ax, "left")
-    autolabel(p2, ax, "right")
-
+def plot(misalloc_array):
+    plt.figure()
+    plt.hist(misalloc_array)
     plt.show()
+# def plot(arraySarsa, arrayQL):
+#     # SarsaMeans = np.mean(arraySarsa, axis=0)
+#     # SarsaStds = np.std(arraySarsa, axis=0)
+
+#     # QLMeans = np.mean(arrayQL, axis=0)
+#     # QLStds = np.std(arrayQL, axis=0)
+
+#     Sarsa_points = errors(arraySarsa)
+#     QL_points = errors(arrayQL)
+
+#     fig, ax = plt.subplots()
+
+#     ind = np.arange(4)  # the x locations for the groups
+#     width = 0.3  # the width of the bars
+
+#     p1 = ax.bar(ind, Sarsa_points[0], width, yerr=Sarsa_points[1], label="SARSA")
+#     p2 = ax.bar(ind + width, QL_points[0], width, yerr=QL_points[1], label="Q-learning")
+#     # p2 = ax.bar(ind + width, QLMeans, width, yerr=QLStds, label="Q-Learning")
+
+#     ax.set_ylabel("Median waiting time")
+#     # ax.set_title("Frequency rate of misallocation")
+#     ax.set_xticks(ind + width / 2)
+#     ax.set_xticklabels(("TT", "TF", "FT", "FF"))
+#     ax.legend()
+
+#     autolabel(p1, ax, "left")
+#     autolabel(p2, ax, "right")
+
+#     plt.show()
 
 
-def autolabel(rects, ax, xpos="center"):
+# def autolabel(rects, ax, xpos="center"):
 
-    ha = {"center": "center", "right": "left", "left": "right"}
-    offset = {"center": 0, "right": 1, "left": -1}
+    # ha = {"center": "center", "right": "left", "left": "right"}
+    # offset = {"center": 0, "right": 1, "left": -1}
 
-    for rect in rects:
-        height = rect.get_height()
-        ax.annotate(
-            "{}".format(height, ".0f"),
-            xy=(rect.get_x() + rect.get_width() / 2, height),
-            xytext=(offset[xpos] * 3, 3),  # use 3 points offset
-            textcoords="offset points",  # in both directions
-            ha=ha[xpos],
-            va="bottom",
-        )
+    # for rect in rects:
+    #     height = rect.get_height()
+    #     ax.annotate(
+    #         "{}".format(height, ".0f"),
+    #         xy=(rect.get_x() + rect.get_width() / 2, height),
+    #         xytext=(offset[xpos] * 3, 3),  # use 3 points offset
+    #         textcoords="offset points",  # in both directions
+    #         ha=ha[xpos],
+    #         va="bottom",
+    #     )
 
 
 
 if __name__ == "__main__":
-    main(number_tries=1, number_episodes=50, number_steps=100)
+    main(number_tries=100, number_episodes=50, number_steps=100)
