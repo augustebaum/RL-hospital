@@ -313,11 +313,18 @@ This experiment also compares the results when we apply two different rewards. F
 Besides, there is a penalty for full capacity of hospital. Capacity penalty equals True means when the capacity is reached not only the episode terminates but also the  maximum capacity of hospital. In \texttt{hospital.py} file, we create a function to compare the length of all the queues to the occupancy of hospital. Large number of negative reward is accumulated if the former is bigger. 
 In experiment 3, early rewards and capacity penalty are divided into four categories. As showed in Figure 3, TT, TF, FT and FF stand for true or false of early rewards and capacity penalty respectively. For example, TF means early rewards equals true and capacity penalty equals false.
 
+\begin{figure}
+    \centering
+    \input{figures/misalloc_dist.tex}
+    \caption{The frequency rate of misallocation}
+    \label{fig:misalloc_dist}
+\end{figure}
+
 Figure 3 summarizes the performance of Sarsa and Q learning with early reward and capacity penalty. X-axis can be explained as their status of applying penalties and y-axis is the occurrence frequency of misallocation of patients in hospital. Black line in the middle of each bar represents standard deviation of input values. Overall, Sarsa algorithm has higher probability to misallocate patients in the wrong queues than Q learning. In addition, large frequency appears when we only apply capacity penalty or not request both early reward and capacity penalty.
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.9\columnwidth]{figures/misallocation.png}
+    \input{figures/exp3_waits.tex}
     \caption{The frequency rate of misallocation}
     \label{fig:penalty_diagram}
 \end{figure}
