@@ -25,7 +25,7 @@ def main(number_tries=5, number_episodes=100, number_steps=100):
         data = tuple(map(lambda x: x[1], dict.items()))
         dict.close()
 
-    plot(*data)
+    plot(data)
 
 
 def generate(n_iter, number_steps, number_episodes):
@@ -34,39 +34,31 @@ def generate(n_iter, number_steps, number_episodes):
     misalloc_rate = np.empty([n_iter])
 
     for i in range(0, n_iter):
-        # for j, x in enumerate(conditions):
-        misalloc_rate[i] = test_exp(algorithm, earlyRewards = False, capacity_penalty = False, number_episodes = number_episodes, number_steps = number_steps)
-            # arraySarsa[i, j] = test_exp(
-                # sarsa, *x, number_episodes=number_episodes, number_steps=number_steps
-            # )
-            # arrayQL[i, j] = test_exp(
-            #     ql, *x, number_episodes=number_episodes, number_steps=number_steps
-            # )
+        misalloc_rate[i] = test_exp(
+            algorithm,
+            earlyRewards=False,
+            capacity_penalty=False,
+            number_episodes=number_episodes,
+            number_steps=number_steps,
+        )
 
     # Save to file for further analysis
     np.savez(
         os.path.dirname(os.path.realpath(__file__))
-        # Warning: this only works on *nix
         + "/exp3/exp3_misalloc"
         + str(number_episodes)
         + "episodes_"
         + str(number_steps)
         + "steps_"
         + datetime.now().strftime("%H-%M-%S"),
-        arraySarsa,
-        arrayQL,
+        misalloc_rate,
     )
 
-    # return arraySarsa, arrayQL
-    # return SarsaMeans, SarsaStds, QLMeans, QLStds
+    return misalloc_rate
 
 
 def test_exp(
-    algorithm,
-    earlyRewards,
-    capacity_penalty,
-    number_steps=100,
-    number_episodes=100
+    algorithm, earlyRewards, capacity_penalty, number_steps=100, number_episodes=100
 ):
     props, *_ = test(
         algorithm,
@@ -74,11 +66,7 @@ def test_exp(
         number_steps=number_steps,
         number_episodes=number_episodes,
         p_arr_prob=[1, 1, 1],
-        doctors=[
-            Doctor(0, 0.1),
-            Doctor(1, 0.1),
-            Doctor(2, 0.1),
-        ],
+        doctors=[Doctor(0, 0.1), Doctor(1, 0.1), Doctor(2, 0.1),],
         feature=feature,
         rand_rewards=0,
         gamma=0.9,
@@ -93,66 +81,11 @@ def test_exp(
     return misalloc(props)
 
 
-def errors(arr):
-    """
-    Distance from median to 20th and 80th percentile, for error bars
-    """
-    a = np.median(arr, axis=0)
-    return a, np.abs(np.quantile(arr, [0.20, 0.80], axis=0) - a)
-
-
 def plot(misalloc_array):
     plt.figure()
     plt.hist(misalloc_array)
     plt.show()
-# def plot(arraySarsa, arrayQL):
-#     # SarsaMeans = np.mean(arraySarsa, axis=0)
-#     # SarsaStds = np.std(arraySarsa, axis=0)
-
-#     # QLMeans = np.mean(arrayQL, axis=0)
-#     # QLStds = np.std(arrayQL, axis=0)
-
-#     Sarsa_points = errors(arraySarsa)
-#     QL_points = errors(arrayQL)
-
-#     fig, ax = plt.subplots()
-
-#     ind = np.arange(4)  # the x locations for the groups
-#     width = 0.3  # the width of the bars
-
-#     p1 = ax.bar(ind, Sarsa_points[0], width, yerr=Sarsa_points[1], label="SARSA")
-#     p2 = ax.bar(ind + width, QL_points[0], width, yerr=QL_points[1], label="Q-learning")
-#     # p2 = ax.bar(ind + width, QLMeans, width, yerr=QLStds, label="Q-Learning")
-
-#     ax.set_ylabel("Median waiting time")
-#     # ax.set_title("Frequency rate of misallocation")
-#     ax.set_xticks(ind + width / 2)
-#     ax.set_xticklabels(("TT", "TF", "FT", "FF"))
-#     ax.legend()
-
-#     autolabel(p1, ax, "left")
-#     autolabel(p2, ax, "right")
-
-#     plt.show()
-
-
-# def autolabel(rects, ax, xpos="center"):
-
-    # ha = {"center": "center", "right": "left", "left": "right"}
-    # offset = {"center": 0, "right": 1, "left": -1}
-
-    # for rect in rects:
-    #     height = rect.get_height()
-    #     ax.annotate(
-    #         "{}".format(height, ".0f"),
-    #         xy=(rect.get_x() + rect.get_width() / 2, height),
-    #         xytext=(offset[xpos] * 3, 3),  # use 3 points offset
-    #         textcoords="offset points",  # in both directions
-    #         ha=ha[xpos],
-    #         va="bottom",
-    #     )
-
 
 
 if __name__ == "__main__":
-    main(number_tries=100, number_episodes=50, number_steps=100)
+    main(number_tries=300, number_episodes=50, number_steps=100)
