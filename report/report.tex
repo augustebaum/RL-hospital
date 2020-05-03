@@ -17,7 +17,7 @@
 \usepackage{hyperref}
 % For figure captions
 \usepackage[font={small,it,sf},hypcap=true]{caption}
-% for bar plots
+% for plots
 \usepackage{pgfplots}
 \usepackage{changepage}
 \usepackage{tikz}
@@ -228,15 +228,22 @@ In this work, the systems of interest will be:
 
 \section{Results}
 
-\subsection{Experiment 1: Featurisations \\*(code in \texttt{feat\_exp.py})}
+\subsection{Experiment 1: Featurisations (code in \texttt{feat\_exp.py})}
 
-In this experiment, we compare the performance of different featurisations. The hospital has six doctors, of types 0 through 5. Here, doctors 0,1,4 are inefficient (0.1), doctors 3,5 are efficient(0.4 and 0.5, respectively) and  doctor 2 is highly efficient(0.9). The system is deliberately complex, so that patient allocation is not trivial, but still intuitive for an observer. Patients of different types arrive with equal probability. Here we use the SARSA algorithm, but this is not a siginificant choice since our main concern are the featurisations. Furthermore, the learning process consists of 100 episodes with 100 steps each. The learning process is repeated 100 times for each feature so that we can get consistent data. This is essential since our model incorporates a certain level of randomness.
+In this experiment, we compare the performance of different featurisations. The hospital has six doctors, of types 0 through 5. Here, doctors 0, 1 and 4 are inefficient (0.1), doctors 3 and 5 are efficient (0.4 and 0.5, respectively) and doctor 2 is highly efficient (0.9). The system is deliberately complex, so that patient allocation is not trivial, but still intuitive in a way for an observer. Patients of different types arrive with equal probability. Here we use the SARSA algorithm, but this is not a significant choice since our main concern are the featurisations. Furthermore, the learning process consists of 100 episodes with 100 steps each. The learning process is repeated 100 times for each feature so that we can get consistent data. This is essential since our model incorporates a certain level of randomness.
 
-The most important characteristic of the current model, apart from the definition of the used featurisation, is the reward system. This system has undergone many iterations before its current state and is perhaps not perfect. Nevertheless, it produces stable and logical results, as far as our data shows. If a patient is allocated to a queue of a doctor who cannot treat them then a penalty proportional to the the type of the patient is immediately recognized, but the patient continues to wait in the queue. The only other time when a reward is assigned is when a patient reaches a doctor. No matter whether the patient can or cannot be treated by the doctor a penalty directly proportional to the waited time and patient's type is recognized. However, if the patient can be treated then a further constant positive reward is recognized as well. The fact that a penalty is immediately  received if a patient is sent to an inappropriate queue is a strong indicator for our better featurisations and they would not really allow this to happen. The constant positive reward for a treated patient mitigates misallocation of patients as well. Before it was introduced the system was occasionally willing to assign patient to wrong (but empty)
-queues and in that way get rid of them faster and with small penalty.
+The most important characteristic of the current model, apart from the definition of the used featurisation, is the reward system. In its current state, the system gives a penalty as soon as a misallocation happens, another proportional to the waiting time of patients and also incorporates a constant positive reward for each treated patient. (******* in discussion at the end  - The constant positive reward for a treated patient mitigates misallocation of patients as well. Before it was introduced the system was occasionally willing to assign patient to wrong (but empty)
+queues and in that way get rid of them faster and with small penalty.)
 
-Finally, it is time to take the features into consideration. We have created a variety of featurisations and they can all be found in \texttt{learning.py} file. They generally fall into two categories: one-hot vectors (featurisations 7-12) and non-one-hot vectors (featurisations 1-6). We note that feature 1 is the best performer from the non-one-hot ones and still it appears to be just as good as the simple naive policy. Given this, the data shown in the bar plot below implies that one-hot vectors are the better choice(the upper bound of the total reward is 10 000 in this experiment).
+We have created a variety of featurisations and they can all be found in \texttt{learning.py} file. They generally fall into two categories: one-hot vectors (featurisations 7-12) and non-one-hot vectors (featurisations 1-6). We will now describe further the construction of some of them and their efficiency.
 
+\texttt{Feature 1} is an iteration of the first feature we created. The information it holds is, essentially, the type(a single number) of the next patient that has to be allocated and indicators about how many people of each type are in any given queue. Using this feature the algorithm does exhibit some learning behaviour but it is far from being satisfactory or consistent. Namely, the system seems to recognize which doctors are more efficient but fails to properly allocate the patients. This issue arises due to a combination of factors. First, the new patient's type is represented by a single number and this potentially hinders the algorithm from properly distinguishing between the different patients. Furthermore, the feature vector conveys proper information about the distribution of patients in different queues only when they are approximately equally distributed and in small numbers (up to 2 persons of a particular type in a queue). On top of that, feature 1 does not hold any information about the waiting time of patients.
+
+\texttt{Feature 7} is a one-hot vector, which represents the information from \texttt{feature 1} in a better way and also includes the mean waiting time of the waiting patients. All the needed characteristics of the system are now encoded as one-hot vectors which are concatenated. For example, if we have 4 doctors (of different types) and the new patient is of type 0 then their representation would be [1, 0, 0, 0]. The distribution of patients and the waiting are constructed in a similar way(i.e. to each characteristic a number is assigned, which is then converted into a one-hot vector). The system now produces results that are evidently better than these given by the simple naive policy. We also note that this featurisation consistently allocates patients to doctors who can actually treat them. 
+
+\texttt{Feature 12} is essentially a slightly upgraded version of \texttt{feature 7}. Instead of holding information about mean waiting time, this feature takes into consideration the waiting time of the first patient from each queue. This allows to make an even better distinction between the queues. As can be seen below, this change improves the mean/median results marginally but most importantly it reduces the standard deviation of the total reward by 50\%.
+
+In conclusion -> Why are one-hot vectors better, features should be built around the reward system\\*
 
 
 \pgfplotsset{width=8cm,compat=1.8}
@@ -251,11 +258,7 @@ Finally, it is time to take the features into consideration. We have created a v
 \end{adjustwidth*}
 \end{figure}
 
-\texttt{Feature 1} description, discussion TBI
-
-\texttt{Feature 7} description, discussion TBI
-
-\texttt{Feature 12} description, discussion TBI
+Will add info about more features.
 
 Will add a plot for the reward evolution of all the features perhaps
 
@@ -274,6 +277,8 @@ When there are few urgent patients, we would expect the agent to allocate many l
 For each data point, we train an agent on a hospital with a given arrival probability and then apply the learned policy to a hospital with \emph{equiprobable} arrivals so that policies can be compared on equal footing. 
 We record the proportion of patients of type 3 allocated to queue 3, the \emph{overall} proportion of patients allocated to queue 3, and the average time waited by a patient that has seen a doctor.
 
+Throughout the experiment, the misallocation rate for type 3 patients was close to 0 (i.e. type 3 patients were almost systematically put in queue 3), so we will be focusing on the other quantities with the knowledge that the different policies can be reliably compared.
+
 We start by running a ``short-term'' trial, in which for each probability, the simulation (training and testing) was carried out 300 times; for each simulation the agent was trained for 50 episodes with 500 steps each.The results are shown in \autoref{fig:fast_doc}.
 
 We mentioned earlier that we should compare policies on an equal footing. However, this is not necessarily possible considering the agent might not have had equal access to each state in each circumstance: when type 3 patients arrive 90\% of the time, the agent gets little experience with treating lower priority patients.
@@ -284,9 +289,9 @@ Yet, the behaviour for low probability agrees with our predictions.
     \centering
     % \includegraphics{figures/???}
     \resizebox{\columnwidth}{!}{
-    \input{figures/exp2_queues_short.tex}
+        \input{figures/exp2_queues.tex}
     }
-    \caption{Proportion of patients allocated to queue 3 as priorities change. Error bars show $20^\text{th}$ and $80^\text{th}$ percentile (to represent the high skew). Points are artificially offset for readability.}
+    \caption{Median proportion of patients allocated to queue 3 as priorities change. Error bars show $20^\text{th}$ and $80^\text{th}$ percentile (to represent the high skew).}
     \label{fig:fast_doc}
 \end{figure}
 
@@ -296,7 +301,8 @@ For each point, the simulation was carried out 100 times (which took around 4 pr
 The result is in \autoref{fig:fast_doc}.
 
 It would seem that in general the agent is more cautious about allocating patients to queue 3, particularly when urgent patients are frequent (the probability is about 25\%, which corresponds to only the type 3 patients being put in queue 3).
-This is 
+
+Accordingly, the waiting time of type 3 patients is drastically decreased when the type 3 queue is reserved for them (red bar on the right of \autoref{fig:fast_doc}): the median waiting time in this case is 0.1 timesteps whereas it sits between 30 and 50 timesteps when all patients are allocated to queue 3 (blue bar on the right of \autoref{fig:fast_doc}).
 
 \subsection{Experiment 3: Penalty check (code in \texttt{rewards\_exp.py})}
 Experiment 3 tests and compares the efficiency of queues with different combinations of two penalties, i.e. the penalty for misallocation (\texttt{earlyRewards}) and the penalty for reaching the occupancy of the hospital (\texttt{capacity\_penalty}). When the former one is true, the penalties, proportional to time waited, are issued directly and immediately when a patient is sent to a specific queue incorrectly before the patient reaches the doctor. When the later one is true, it means that a penalty for inefficiency, which is extremely large, should be taken into account when the maximum capacity of the hospital is reached either at or before the episode terminates.
@@ -318,7 +324,17 @@ Figure 3 summarizes the performance of Sarsa and Q learning with early reward an
 
 
 \section{Discussion}
+Our experiments shed some light on various aspects of our approach to modelling and controlling the hospital queuing system.
+First, using the internal state directly to learn a policy, even for our simplified model, is intractable. This lead us to experiment with different representations for the hospital.
 
+It would seem that featurisations in the form of a one-hot vector are superior in terms of the performance of the resulting policy.
+This was the subject of experiment 1, in which we could also see that learned policies with the right featurisation outperforms the naïve policy.
+
+In experiment 2, we compared the behaviour of the learned agent to our intuition in a simple example, where one doctor is both very experienced and very efficient.
+Though the measures are affected by the training processes itself, it seems that with enough training the agent adopts coherent behaviour with respect to our reward system (which is based on our subjective intuition, admittedly).
+
+
+\note{We did not look at how learning parameters affected learning (e.g. learning rate or discount parameter). We just stuck to what we thought were sensible choices.}
 \section{Conclusion}
 
 
