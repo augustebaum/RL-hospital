@@ -10,7 +10,7 @@ import os
 """ Bar plot code (including `autolabel` function) obtained from:https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
 """
 
-conditions = [(True, True), (True, False), (False, True), (False, False)]
+# conditions = [(True, True), (True, False), (False, True), (False, False)]
 
 
 def main(number_tries=5, number_episodes=100, number_steps=100):
