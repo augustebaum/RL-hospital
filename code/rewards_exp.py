@@ -25,25 +25,23 @@ def main(number_tries=5, number_episodes=100, number_steps=100):
 
 
 def generate(n_iter, number_steps, number_episodes):
-    # arraySarsa = np.empty([n_iter, 4])
-    # arrayQL = np.empty([n_iter, 4])
-    misalloc_rate = np.empty([n_iter])
+    arraySarsa = np.empty([n_iter, 4])
+    arrayQL = np.empty([n_iter, 4])
 
     for i in range(0, n_iter):
-        # for j, x in enumerate(conditions):
-        misalloc_rate[i] = test_exp(algorithm, earlyRewards = False, capacity_penalty = False, number_episodes = number_episodes, number_steps = number_steps)
-            # arraySarsa[i, j] = test_exp(
-                # sarsa, *x, number_episodes=number_episodes, number_steps=number_steps
-            # )
-            # arrayQL[i, j] = test_exp(
-            #     ql, *x, number_episodes=number_episodes, number_steps=number_steps
-            # )
+        for j, x in enumerate(conditions):
+            arraySarsa[i, j] = test_exp(
+                sarsa, *x, number_episodes=number_episodes, number_steps=number_steps
+            )
+            arrayQL[i, j] = test_exp(
+                ql, *x, number_episodes=number_episodes, number_steps=number_steps
+            )
 
     # Save to file for further analysis
     np.savez(
         os.path.dirname(os.path.realpath(__file__))
         # Warning: this only works on *nix
-        + "/exp3/exp3_misalloc"
+        + "/exp3/exp3_"
         + str(number_episodes)
         + "episodes_"
         + str(number_steps)
@@ -53,7 +51,7 @@ def generate(n_iter, number_steps, number_episodes):
         arrayQL,
     )
 
-    # return arraySarsa, arrayQL
+    return arraySarsa, arrayQL
     # return SarsaMeans, SarsaStds, QLMeans, QLStds
 
 
