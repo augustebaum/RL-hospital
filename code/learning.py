@@ -594,7 +594,7 @@ def simulate(
     epsilon       = 0,
     plot          = False,
     title         = "Untitled",
-    printSteps    = 0,
+    # printSteps    = 0,
     checkBefore   = True,
     cap_penalty   = False):
     """ 
@@ -627,6 +627,7 @@ def simulate(
     N = len(env.actions)
     props = np.zeros([N, N])
     rewards = np.zeros(steps)
+    size = np.zeros(steps)
 
     if not(naive) and (featurisation is None or q_weights is None):
         print("Cannot use both a learned policy and naive policy!")
@@ -640,10 +641,12 @@ def simulate(
             a = epsilon_greedy(s, q_weights, epsilon)
         props[env.newPatient.need, a] += 1
         rewards[i] = env.next_step(a, checkBefore, cap_penalty)
-        if printSteps and not(i%printSteps):
-        # Only print if printSteps is true and the step is a multiple of printSteps
-            print("Reward:", rewards[i])
-            env.pretty_print()
+        size[i] = sum(map(len, env.queues))
+
+        # if printSteps and not(i%printSteps):
+        # # Only print if printSteps is true and the step is a multiple of printSteps
+        #     print("Reward:", rewards[i])
+        #     env.pretty_print()
 
     props = props/steps*100
     
@@ -698,7 +701,7 @@ def simulate(
     time_array = [ [ p.wait for p in filter(lambda x: x.need == i, env.cured) ] for i in range(len(env.actions)) ]
 
     plt.show()
-    return props, rewards, n_cured, time_array, cured_dict
+    return props, rewards, n_cured, time_array, cured_dict, size
 
 def rewards_curve(sim_rewards, num_episodes, title = "Untitled", naive_rewards = None, max_rewards = None, legend = True):
     """
@@ -836,7 +839,7 @@ def test(
                  ("a" if capacity_penalty else "no")+\
                  " capacity penalty"
 
-    props, rewards, cured, time, cured_types = simulate(
+    props, rewards, cured, time, cured_types, size = simulate(
             hospital,
             feature,
             Q_weights,
@@ -862,7 +865,7 @@ def test(
     # Extra information to be printed for the first figure
     print_extra_info(rewards, cured, number_steps, cured_types, sum(map(sum, time)), title1)
     
-    return props, rewards, cured, time, cured_types 
+    return props, rewards, cured, time, cured_types, size
 
 
 def misalloc(props):
