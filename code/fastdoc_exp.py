@@ -3,17 +3,11 @@ from learning import *
 import numpy as np
 import matplotlib.pyplot as plt
 
-from tikzplotlib import save as tikz_save
-
 # For detecting the extra arguments
 import sys
 import os
 
-# For formatting the text using tex (used in report)
-# from matplotlib import rc
-
-# rc("text", usetex=True)
-# For exporting variables to file
+# For naming exported files automatically
 from datetime import datetime
 
 """ 
@@ -25,7 +19,7 @@ this may take time.
 If all you care about is seeing the data used in the report (or any previously generated data),
 you can pass a file as an argument:
 ``` python3 fastdoc_exp.py exp2/data.npz ```
-This will load the data in data.npz and plot it instead of generating new data.
+This will load the data contained in data.npz and plot it instead of generating new data.
 
 TODO:
     Group data arrays into multidimensional array
@@ -38,6 +32,7 @@ p_array = np.linspace(0.1, 0.9, 5)
 
 def main(p_array=p_array, number_tries=5):
     if len(sys.argv) == 1:
+        # If no argument
         data = generate(p_array, number_tries)
     else:  # Assume only 1 extra argument: npz file containing array
         dict = np.load(str(sys.argv[1]))
@@ -49,27 +44,27 @@ def main(p_array=p_array, number_tries=5):
 
 def generate(p_array, number_tries):
     """
-    Generates data for experiment
-    2
+    Generates data for experiment 2
 
     Inputs:
     p_array      - array of probabilities (type 3 arrivals)
     number_tries - Number of trials per probability
 
     Outputs:
-    Data Arrays with len(p_array) lines and number_tries columns 
+    data arrays with len(p_array) lines and number_tries columns 
     """
     feature = feature_12  # One-hot
     capacity_hospital = 500
-    number_steps = 500
-    number_episodes = 150
+    number_steps = 100
+    number_episodes = 10
     algorithm = sarsa
 
     # Number of people in queue 3 for each p
     # Number of people in queue 3 that are of type 3 for each p
     # Average amount of time type 3 patients waited for
     (queue3, queue3type3, time3) = tuple(
-        np.empty([number_tries, len(p_array)]) for _ in range(3)
+        np.empty([number_tries, len(p_array)])\
+        for _ in range(3)
     )
 
     ###############################################
@@ -91,19 +86,6 @@ def generate(p_array, number_tries):
     for j, p in enumerate(p_array):
         arrival_rates = [1, 1, 1, round(3 * p / (1 - 0.99999 * p))]
 
-        # this hospital object used only to calculate the random rewards list
-        # Not very useful
-        # hospital_r = Hospital(capacity_hospital, doctors, [1, 1, 1, 1])
-
-        # Random policy (total_reward_per_episode_r is needed in `test`)
-        # t_list_r, Q_optimal_weights_r, total_reward_per_episode_r = algorithm(
-        # hospital_r, feature, 0, 0, 1, number_episodes, number_steps
-        # )
-
-        # Run hospital with the naive policy for number_steps steps
-        # Record allocations and plot heatmap
-        # p_naive, r_naives = simulate( hospital_r, naive = True, steps = number_steps, plot = "map")
-
         # Train, simulate and gather:
         # - The number of patients in queue 3
         # - The number of patients of type 3 in queue 3
@@ -111,7 +93,7 @@ def generate(p_array, number_tries):
 
         for i in range(number_tries):
             # Testing using equal arrival probabilities to provide unbiased account
-            props, rewards, cured, time_array, cured_types = test(
+            props, _, _, time_array, _, _ = test(
                 algorithm,
                 capacity_hospital,
                 number_steps,
@@ -124,7 +106,7 @@ def generate(p_array, number_tries):
                 alpha=None,
                 epsilon=0.1,
                 plot_type=None,
-                title1="Type 3 patients arrive {:.0%} of the time during training".format(p),
+                title1="Type 3 patients arrive {:.0%} of the time during training".format( p ),
                 title2="Reward evolution for the picture above",
             )
 
@@ -169,19 +151,7 @@ def plot_errorbar(points_array, label):
 
 
 def plot(queue3, queue3type3, time3, p_array):
-    # Could be made more extensiible with multidimensional array
-    # av_q3 = np.mean(queue3, axis=0)
-    # av_q3t3 = np.mean(queue3type3, axis=0)
-    # av_time3 = np.mean(time3, axis=0)
-
-    # yerr_q3 = 2 * np.std(queue3, axis=0)
-    # yerr_q3t3 = 2 * np.std(queue3type3, axis=0)
-    # yerr_time3 = 2 * np.std(time3, axis=0)
-
-    # print("2 std devs for queue3", yerr_q3)
-    # print("2 std devs for queue3type3", yerr_q3t3)
-    # print("2 std devs for time3", yerr_time3)
-
+    # Could be made more extensible with multidimensional array
     plt.figure(1)
     plot_errorbar(errors(queue3), "Proportion of patients in queue 3")
     plot_errorbar(errors(queue3type3), "Proportion of patients of type 3 in queue 3")
@@ -189,7 +159,6 @@ def plot(queue3, queue3type3, time3, p_array):
     plt.legend()
     plt.xlabel("Probability that arriving patient has type 3 during training")
     plt.tight_layout()
-    tikz_save("exp2_queues_short.tex")
 
     plt.figure(2)
     plot_errorbar(errors(time3), "Average time waited by (cured) type 3 patients")
@@ -198,9 +167,8 @@ def plot(queue3, queue3type3, time3, p_array):
     plt.xlabel("Probability that arriving patient has type 3 during training")
     plt.tight_layout()
 
-    # plt.show()
-    tikz_save("exp2_time_short.tex")
+    plt.show()
 
 
 if __name__ == "__main__":
-    main(number_tries=25)
+    main(number_tries=5)

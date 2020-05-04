@@ -7,7 +7,8 @@ import sys
 import os
 
 
-""" Bar plot code (including `autolabel` function) obtained from:https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
+"""
+Bar plot code (including `autolabel` function) obtained from:https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
 """
 
 conditions = [(True, True), (True, False), (False, True), (False, False)]
@@ -16,15 +17,19 @@ conditions = [(True, True), (True, False), (False, True), (False, False)]
 def main(number_tries=5, number_episodes=100, number_steps=100):
     if len(sys.argv) == 1:
         data = generate(number_tries, number_steps, number_episodes)
-    else:  # Assume only 1 extra argument: npz file containing array
+    else:  # Assume only 1 extra argument: npz file containing arrays
         dict = np.load(str(sys.argv[1]))
         data = tuple(map(lambda x: x[1], dict.items()))
         dict.close()
 
     # Just in case there are NaN
-    data = map(lambda arr: arr[~np.isnan(arr).any(axis=1)], data)
+    data = list(map(lambda arr: arr[~np.isnan(arr).any(axis=1)], data))
 
     plot(*data)
+
+    for arr in data:
+        a = errors(arr)
+        print(a[0], a[1])
 
 
 def generate(n_iter, number_steps, number_episodes):
@@ -62,11 +67,7 @@ def generate(n_iter, number_steps, number_episodes):
 
 
 def test_exp(
-    algorithm,
-    earlyRewards,
-    capacity_penalty,
-    number_steps=100,
-    number_episodes=80
+    algorithm, earlyRewards, capacity_penalty, number_steps=100, number_episodes=80
 ):
     props, _, _, times, _, _ = test(
         algorithm,
@@ -74,11 +75,7 @@ def test_exp(
         number_steps=number_steps,
         number_episodes=number_episodes,
         p_arr_prob=[1, 1, 1],
-        doctors=[
-            Doctor(0, 0.1),
-            Doctor(1, 0.4),
-            Doctor(2, 0.1),
-        ],
+        doctors=[Doctor(0, 0.1), Doctor(1, 0.4), Doctor(2, 0.1),],
         feature=feature_7,
         rand_rewards=0,
         gamma=0.9,
@@ -90,7 +87,10 @@ def test_exp(
         earlyRewards=earlyRewards,
         capacity_penalty=capacity_penalty,
     )
-    return misalloc(props), np.median(list(map(lambda l: np.median(l) if len(l)>0 else 0, times)))
+    return (
+        misalloc(props),
+        np.median(list(map(lambda l: np.median(l) if len(l) > 0 else 0, times))),
+    )
 
 
 def errors(arr):
@@ -112,9 +112,21 @@ def plot(arraySarsa_misalloc, arrayQL_misalloc, arraySarsa_time, arrayQL_time):
     ind = np.arange(4)  # the x locations for the groups
     width = 0.3  # the width of the bars
 
-	# Misallocations
-    p1 = ax.bar(ind, Sarsa_misalloc_points[0], width, yerr=Sarsa_misalloc_points[1], label="SARSA")
-    p2 = ax.bar(ind + width, QL_misalloc_points[0], width, yerr=QL_misalloc_points[1], label="Q-learning")
+    # Misallocations
+    p1 = ax.bar(
+        ind,
+        Sarsa_misalloc_points[0],
+        width,
+        yerr=Sarsa_misalloc_points[1],
+        label="SARSA",
+    )
+    p2 = ax.bar(
+        ind + width,
+        QL_misalloc_points[0],
+        width,
+        yerr=QL_misalloc_points[1],
+        label="Q-learning",
+    )
 
     ax.set_ylabel("Proportion of misallocated patients")
     # ax.set_title("Frequency rate of misallocation")
@@ -131,11 +143,18 @@ def plot(arraySarsa_misalloc, arrayQL_misalloc, arraySarsa_time, arrayQL_time):
     width = 0.3  # the width of the bars
 
     # Misallocations
-    p1 = ax_time.bar(ind, Sarsa_time_points[0], width, yerr=Sarsa_time_points[1], label="SARSA")
-    p2 = ax_time.bar(ind + width, QL_time_points[0], width, yerr=QL_time_points[1], label="Q-learning")
+    p1 = ax_time.bar(
+        ind, Sarsa_time_points[0], width, yerr=Sarsa_time_points[1], label="SARSA"
+    )
+    p2 = ax_time.bar(
+        ind + width,
+        QL_time_points[0],
+        width,
+        yerr=QL_time_points[1],
+        label="Q-learning",
+    )
 
     ax_time.set_ylabel("Median waiting time")
-    # ax_time.set_title("Frequency rate of misallocation")
     ax_time.set_xticks(ind + width / 2)
     ax_time.set_xticklabels(("TT", "TF", "FT", "FF"))
     ax_time.legend()
@@ -163,6 +182,9 @@ def autolabel(rects, ax, xpos="center"):
         )
 
 
-
 if __name__ == "__main__":
-    main(number_tries=2, number_episodes=80, number_steps=100)
+    main(
+        number_tries=2,
+        number_episodes=80,
+        number_steps=100
+    )
