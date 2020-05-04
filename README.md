@@ -2,6 +2,18 @@
 
 Simulate a hospital and explore different reinforcement learning algorithms to optimize policy.
 
+## Files
+- `hospital.py` defines the `Hospital` class along with the methods necessary to simulate the passage of time in a hospital instance (including the reward system necessary for learning a policy).
+- `learning.py` defines all methods pertaining to learning a policy: featurisations, learning algorithms, visualisation of policies.
+- `feat_exp.py` generates (or reads pre-generated) and plots data for experiment 1 of the report, where several featurisations are compared.
+- `fastdoc_exp.py` generates (or reads pre-generated) and plots data for experiment 2 of the report, where we study the behaviour of the agent 
+- `rewards_exp.py` generates (or reads pre-generated) and plots data for experiment 3 of the report, where several algorithms and reward systems are compared. 
+- `data_combine.py` is used to combine data arrays from different files: that way, all the data doesn't have to come from a single run of the experiment script.
+- `exp1`, `exp2` and `exp3` contain generated data for each experiment. When an experiment is run in "generate" mode, it automatically outputs the generated data to the corresponding directory.
+- (deprecated )`misalloc_check.py` generates data for a plot that used to be in experiment 3
+
+Each experiment can be run in "generate" or "read" mode; if the file is run with an argument, it assumes a data file in numpy binary format, reads the data from it and plots this data. Otherwise (no arguments), it generates new data according to the number of trials, steps and episodes given in the file, outputs the data to a .npz file for later use and plots it.
+
 ## Description
 The hospital has different doctors who specialize in different things.
 
@@ -38,53 +50,3 @@ When the hospital is full, any arriving patient is sent away.
 
 A patient with need *n* has to be seen by a doctor of type *n* or above.
 For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *but only once the patient has gone through the queue*.
-
-### Files
-- `hospital.py` defines the `Hospital` class along with the methods necessary to simulate the passage of time in a hospital instance (including the reward system necessary for learning a policy).
-- `learning.py` defines all methods pertaining to learning a policy: featurisations, learning algorithms, visualisation of policies.
-- `simulation.py` contains various experiments, i.e. comparisons of learned policies in different situations, having only changed a few parameters.
-
-## TODO
-### On hold
-- Look for different q-function approximations (RBFs? Monomials)? (Todor)
-### Current
-- Better document the code
-  - Format the code to make it readable and concise
-  - Clearly divy up the experiments into folders -- include data files for long experiments (that way the experiment files can be run in short time, but the results in the report can still be visualised using the code)
-- Experiments
-
-
-## Report Plan
-1. Intro:
-- Background
-- Describe the system
-- Discuss details (e.g. when the rewards are applied)
-- Introduce research (which algorithms, which experiments, what was compared)
-- Introduce challenges (rewards given at the end)
-2. Results
-- Experiment 1: (Todor)
-  - Fixed reward system
-  - Compare featurisations:
-    - One non-one-hot
-    - `feature_7`
-    - Another one-hot
-- Experiment 2: (Auguste)
-  - 4 doctor types
-  - Change efficiency of most skilled doctor
-  - Plot something vs. efficiency
-- Experiment 3: (Isabel and Yongxin)
-  - Fixed system
-  - Fixed featurisation
-  - Change reward system
-3. Discussion
-- Which featurisations do best;
-  - Adapt it to the rewards system (e.g. if part of the reward depends on patient waits then you should include info about those in the featurisation)
-- Which algorithms do best? -> ql seems faster? (to test)
-- In what situations we can expect to find the optimal policy
-- What challenges were there? How did we solve/not solve them?
-- Global comparison/applicability
-4. Conclusion/Opening
-- How did it go compared to expectations?
-- What could be done better?
-  - Further function approximation? (RBFs, monomials)
-  - "Marking scheme" (dividing reward into several parts)
