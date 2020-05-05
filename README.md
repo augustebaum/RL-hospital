@@ -10,7 +10,7 @@ Simulate a hospital and explore different reinforcement learning algorithms to o
 - `rewards_exp.py` generates (or reads pre-generated) and plots data for experiment 3 of the report, where several algorithms and reward systems are compared. 
 - `data_combine.py` is used to combine data arrays from different files: that way, all the data doesn't have to come from a single run of the experiment script.
 - `exp1`, `exp2` and `exp3` contain generated data for each experiment. When an experiment is run in "generate" mode, it automatically outputs the generated data to the corresponding directory.
-- (deprecated) `misalloc_check.py` generates data for a plot that used to be in experiment 3.
+- (deprecated) `misalloc_check_exp.py` generates data for a plot that used to be in experiment 3.
 
 Each experiment can be run in "generate" or "read" mode; if the file is run with an argument, it assumes a data file in numpy binary format, reads the data from it and plots this data. Otherwise (no arguments), it generates new data according to the number of trials, steps and episodes given in the file, outputs the data to a .npz file for later use and plots it.
 
