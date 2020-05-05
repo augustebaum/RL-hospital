@@ -27,10 +27,6 @@ def main(number_tries=5, number_episodes=100, number_steps=100):
 
     plot(*data)
 
-    for arr in data:
-        a = errors(arr)
-        print(a[0], a[1])
-
 
 def generate(n_iter, number_steps, number_episodes):
     arraySarsa_misalloc = np.empty([n_iter, 4])
@@ -47,21 +43,21 @@ def generate(n_iter, number_steps, number_episodes):
                 ql, *x, number_episodes=number_episodes, number_steps=number_steps
             )
 
-    # Save to file for further analysis
-    np.savez(
-        os.path.dirname(os.path.realpath(__file__))
-        # Warning: this only works on *nix
-        + "/exp3/exp3_"
-        + str(number_episodes)
-        + "episodes_"
-        + str(number_steps)
-        + "steps_"
-        + datetime.now().strftime("%H-%M-%S"),
-        arraySarsa_misalloc,
-        arrayQL_misalloc,
-        arraySarsa_time,
-        arrayQL_time,
-    )
+    # Save to file for further analysis (deactivated)
+    # np.savez(
+    #     os.path.dirname(os.path.realpath(__file__))
+    #     # Warning: this only works on *nix
+    #     + "/exp3/exp3_"
+    #     + str(number_episodes)
+    #     + "episodes_"
+    #     + str(number_steps)
+    #     + "steps_"
+    #     + datetime.now().strftime("%H-%M-%S"),
+    #     arraySarsa_misalloc,
+    #     arrayQL_misalloc,
+    #     arraySarsa_time,
+    #     arrayQL_time,
+    # )
 
     return arraySarsa_misalloc, arrayQL_misalloc, arraySarsa_time, arrayQL_time
 
@@ -183,8 +179,4 @@ def autolabel(rects, ax, xpos="center"):
 
 
 if __name__ == "__main__":
-    main(
-        number_tries=2,
-        number_episodes=80,
-        number_steps=100
-    )
+    main(number_tries=2, number_episodes=80, number_steps=100)
