@@ -46,7 +46,7 @@ rew_learning_matrix = np.zeros((n_features, number_of_episodes))
 # However, we do not recommend increasing the number of experiments to 
 # more than 50 -> it would take far too much time.
 ##############################################################################
-Number_of_experiments = 25
+Number_of_experiments = 10
 ##############################################################################
 
 
@@ -80,7 +80,6 @@ def main(num_exp):
             
             # add data to the matrix with learning rewards evolution
             learning_rewards(learning_rew, j, num_exp)
-            print("This should be the final reward: ", sum(sim_rew))
             
     # output results such as Figure 3 - reward evolution during learning       
     show_learning_curves(rew_learning_matrix, naive_evol)
