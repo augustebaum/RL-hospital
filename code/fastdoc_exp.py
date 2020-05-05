@@ -29,6 +29,13 @@ TODO:
 # Careful, all the data was generated using these probabilities so changing them will make it impossible to plot pre-exisiting data
 p_array = np.linspace(0.1, 0.9, 5)
 
+feature = feature_12  # One-hot
+capacity_hospital = 500
+number_steps = 100
+number_episodes = 30
+number_tries = 5
+algorithm = sarsa
+
 
 def main(p_array=p_array, number_tries=5):
     if len(sys.argv) == 1:
@@ -53,12 +60,6 @@ def generate(p_array, number_tries):
     Outputs:
     data arrays with len(p_array) lines and number_tries columns 
     """
-    feature = feature_12  # One-hot
-    capacity_hospital = 500
-    number_steps = 100
-    number_episodes = 10
-    algorithm = sarsa
-
     # Number of people in queue 3 for each p
     # Number of people in queue 3 that are of type 3 for each p
     # Average amount of time type 3 patients waited for
@@ -114,19 +115,19 @@ def generate(p_array, number_tries):
             queue3type3[i, j] = props[3, 3]
             time3[i, j] = np.mean(time_array[3]) if time_array[3] else 0
 
-    # Save to file for further analysis
-    np.savez(
-        os.path.dirname(os.path.realpath(__file__))
-        + "/exp2/exp2--"
-        + str(number_episodes)
-        + "episodes"
-        + str(number_steps)
-        + "steps"
-        + datetime.now().strftime("%H-%M-%S"),
-        queue3,
-        queue3type3,
-        time3,
-    )
+    # Save to file for further analysis (deactivated)
+    # np.savez(
+    #     os.path.dirname(os.path.realpath(__file__))
+    #     + "/exp2/exp2--"
+    #     + str(number_episodes)
+    #     + "episodes"
+    #     + str(number_steps)
+    #     + "steps"
+    #     + datetime.now().strftime("%H-%M-%S"),
+    #     queue3,
+    #     queue3type3,
+    #     time3,
+    # )
 
     return queue3, queue3type3, time3
 

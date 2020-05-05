@@ -14,10 +14,22 @@ import os
 
 feature = feature_12
 algorithm = sarsa
-# conditions = [(True, True), (True, False), (False, True), (False, False)]
+number_tries=1
+number_episodes=5
+number_steps=1
 
 
-def main(number_tries=5, number_episodes=100, number_steps=100):
+def main(number_tries, number_episodes, number_steps):
+    print("Misallocation experiment\n")
+    print("Featurisation:", feature)
+    print("Algorithm:", algorithm)
+    print("Number of episodes per simulation: ", number_episodes)
+    print("Number of timesteps per episode: ", number_steps)
+    print("Number of trials per set of parameters: ", number_tries)
+    # print("Estimated duration:",number_tries*number_steps*number_episodes*0.9 ,"seconds\n")
+
+
+
     if len(sys.argv) == 1:
         data = generate(number_tries, number_steps, number_episodes)
     else:  # Assume only 1 extra argument: npz file containing array
@@ -25,12 +37,10 @@ def main(number_tries=5, number_episodes=100, number_steps=100):
         data = tuple(map(lambda x: x[1], dict.items()))
         dict.close()
 
-    plot(data)
+    # plot(data)
 
 
 def generate(n_iter, number_steps, number_episodes):
-    # arraySarsa = np.empty([n_iter, 4])
-    # arrayQL = np.empty([n_iter, 4])
     misalloc_rate = np.empty([n_iter])
 
     for i in range(0, n_iter):
@@ -42,17 +52,17 @@ def generate(n_iter, number_steps, number_episodes):
             number_steps=number_steps,
         )
 
-    # Save to file for further analysis
-    np.savez(
-        os.path.dirname(os.path.realpath(__file__))
-        + "/exp3/exp3_misalloc"
-        + str(number_episodes)
-        + "episodes_"
-        + str(number_steps)
-        + "steps_"
-        + datetime.now().strftime("%H-%M-%S"),
-        misalloc_rate,
-    )
+    # Save to file for further analysis (deactivated)
+    # np.savez(
+    #     os.path.dirname(os.path.realpath(__file__))
+    #     + "/exp3/exp3_misalloc"
+    #     + str(number_episodes)
+    #     + "episodes_"
+    #     + str(number_steps)
+    #     + "steps_"
+    #     + datetime.now().strftime("%H-%M-%S"),
+    #     misalloc_rate,
+    # )
 
     return misalloc_rate
 
@@ -88,4 +98,4 @@ def plot(misalloc_array):
 
 
 if __name__ == "__main__":
-    main(number_tries=300, number_episodes=50, number_steps=100)
+    main(number_tries=number_tries, number_episodes=number_episodes, number_steps=number_steps)
