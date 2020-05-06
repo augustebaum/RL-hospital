@@ -4,6 +4,25 @@ from fastdoc_exp import *
 import numpy as np
 import matplotlib.pyplot as plt
 
+"""
+You can run this file as is:
+``` python3 feat_exp.py ```
+which will generate data for experiment 1 and plot it.
+Depending on the training parameter below (Number_of_experiments),
+the plots can be more or less accurate.
+
+Note: the exact plots in the report are created after a lot of data was saved in files.
+The exact plots will require Number_of_experiments = 300. However, this
+will take more than 20 minutes. 
+
+The parameter is currently set to 15, which should take ~3 minutes to run. 
+This should produce reasonable plots.
+
+"""
+
+##############################################################################
+Number_of_experiments = 15                                                   #
+##############################################################################
 
 # these are the relative probabilites of each patient arriving - the index in 
 # the list corresponds to the patient's type. If we had a list [1,2,4] then this would mean
@@ -13,26 +32,26 @@ p_arr_prob = [1, 1, 1, 1, 1, 1]
 
 # a list with the features to be used
 features = [feature_1, feature_7, feature_12, feature_13]
-
 featNames = {0:"feature_1", 1:"feature_7", 2:"feature12", 3:"feature_13"}
 
-# doctors_1 is currently used for all tests (it looks like a good choice
+# list of doctors; Doctor(type, 0 <= efficiency <= 1)
 doctors = [Doctor(0, 0.1),
              Doctor(1, 0.1),
              Doctor(2, 0.9),
              Doctor(3, 0.4),
              Doctor(4, 0.1),
              Doctor(5, 0.5)]
+
 # max number of people that could be waiting in the hospital
 capacity = 100
 number_of_steps = 100
 number_of_episodes = 100
 
-# this hospital object used only to calculate the random rewards list
+# this hospital object used only to calculate data for the naive policy
 hospital_object = Hospital(capacity, doctors, p_arr_prob)
 
 
-# used to create a matrix that will hold the necessary data
+# used to create a matrix that will hold the necessary data; i.e. number of rows
 n_features = 4
 
 # matrices to hold the reward data needed for the final plots
@@ -40,21 +59,12 @@ rew_sim_matrix = [[] for _ in range(n_features)]
 rew_learning_matrix = np.zeros((n_features, number_of_episodes))
 
 
-
-# We note that foe each feature in our report there 300 data points.
-# i.e. num_exp should be 300 in order to get the same data
-# However, we do not recommend increasing the number of experiments to 
-# more than 50 -> it would take far too much time.
-##############################################################################
-Number_of_experiments = 10
-##############################################################################
-
-
-
 def main(num_exp):
     
+    # produce data for the naive policy
     naive_median_quantiles, naive_evol = naive_policy()
     
+    # produce data for all the features
     for j, feature in enumerate(features):
         for i in range(num_exp):
             
@@ -87,28 +97,73 @@ def main(num_exp):
     # calculate the data needed for Figure 2
     calc_median_quantiles(rew_sim_matrix)
     
+    # output results such as Figure 2 - rewards after simulations
     show_simulation_rewards(rew_sim_matrix, naive_median_quantiles)
     
     
+    
 def calc_median_quantiles(rew_matrix):
+    """
+    Calculates the median reward and the distance
+    from median to 20th and 80th percentile, for error bars
+    
+    Inputs
+    ----------
+    rew_matrix - each row corresponds to the episodic rewrard of a feature
+    """
     for i in range(len(rew_matrix)):
         rew_matrix[i] = errors(rew_matrix[i])
     
 def simulation_rewards(rew, index):
+    """
+    Adds reward from an episode to a feature's reward list
+    
+    Inputs
+    ----------
+    rew - current episodic reward for a specific feature
+    index - index that corresponds to a feature
+    """
     rew_sim_matrix[index].append(rew)
 
 def learning_rewards(rew_per_ep, index, num_exp):
+    """
+    Updates the matrix with the reward evolution data (learning phase)
+    
+    Inputs
+    ----------
+    rew_per_ep - list with episodic rewards
+    index - index that corresponds to one of the features
+    num_exp - Number_of_Experiments
+    """
     rew_learning_matrix[index] += np.array(rew_per_ep) / num_exp
     
 def show_learning_curves(rew_matrix, naive_rew):
+    """
+    Plots the reward evolution (from the learning process)
+    
+    Inputs
+    ----------
+    rew_matrix - matrix with reward evolution lists for the features
+    naive_rew - list with rewards from the naive policy
+    """
     plt.plot(range(len(rew_matrix[0])), rew_matrix[0], "-b", label = "Feature 1")
     plt.plot(range(len(rew_matrix[1])), rew_matrix[1], "-g", label = "Feature 7")
     plt.plot(range(len(rew_matrix[2])), rew_matrix[2], "-r", label = "Feature 12")
     plt.plot(range(len(rew_matrix[3])), rew_matrix[3], "-c", label = "Feature 13")
     plt.plot(range(len(naive_rew)), naive_rew, "-m", label = "Naive policy")
+    plt.xlabel("Episode")
+    plt.ylabel("Reward (learning phase)")
     plt.legend()
     
 def show_simulation_rewards(rew_matrix, naive_median_quantiles):
+    """
+    Plots the simulation (after learning) rewards for each feature (bar plot)
+    
+    Inputs
+    ----------
+    rew_matrix - holds the median and error bars for each feature
+    naive_median_quantiles - holds the median and error bars for naive policy
+    """
     fig = plt.figure()
     ax = fig.add_axes([0,0,1,1])
     features = ['Naive policy', 'feat1', 'feat7', 'feat13', 'feat12']
@@ -116,10 +171,15 @@ def show_simulation_rewards(rew_matrix, naive_median_quantiles):
     quantiles = [[naive_median_quantiles[1][0], rew_matrix[0][1][0], rew_matrix[1][1][0], rew_matrix[3][1][0], rew_matrix[2][1][0] ],
                  [naive_median_quantiles[1][1], rew_matrix[0][1][1], rew_matrix[1][1][1], rew_matrix[3][1][1], rew_matrix[2][1][1] ]]
     ax.bar(features, rewards, yerr = quantiles)
+    plt.ylabel("Simulation rewards")
     plt.show()
 
 def naive_policy():
-    
+    """
+    naive policy - assign patient x to queue x
+    There is no actual learning process for the naive policy.
+    This return both a list with rewards and error bars (20th and 80th percentile)
+    """
     print("Experiment 1 initiated")
     
     reward_list = [0 for _ in range(number_of_episodes)]
@@ -184,15 +244,18 @@ def test_exp(
 
     Output
     ---------
-    Produces 2 plots - one for the best allocation of patients
-        and one for the rewards evolution during the learning process.
-    Some extra information for the leaning process is also printed out.
+    total_reward_per_episode - episodic rewards during the learning process
+    rewards     - a list with rewards after a simulation with learned Qweights
+    props       - a matrix that shows patient allocation in queues
+    cured       - the number of patients seen by a doctor
+    time        - total time waited by treated patients
+    cured_types - dict with treated patients by types
     """
 
     # an instance of the Hospital object (defined in hospital.py)
     hospital = Hospital(capacity_hospital, doctors, p_arr_prob)
     
-    # function for the sarsa algorithm.
+    # learning process with the currently used algorithm.
     # Q_weights - the weight matrix, 1 weight vector for each action in the simulation
     # total_reward_per_episode - a list with the reward for each episode
     # t_list - List of info for when each episode is terminated (if terminated)
@@ -209,13 +272,6 @@ def test_exp(
             capacity_penalty)
     
     
-    # Simulate the learned policy.
-    # props - a matrix for the relative distribution of patients in the queues.
-    # rewards - a list with the reward acquired at each step in the simulation
-    # cured - total number of cured patients during the simulation
-    # time - total time waited by cured patients
-    # cured_types - cured patients by types
-    
     # If you want to use different patient arrival probabilities for testing, a new hospital is created
     if p_prob_test is not None:
         hospital = Hospital(capacity_hospital, doctors, p_prob_test)
@@ -226,7 +282,12 @@ def test_exp(
                  ("a" if capacity_penalty else "no")+\
                  " capacity penalty"
                  
-    # if feature is feature_12 works
+    # Simulate the learned policy.
+    # props - a matrix for the relative distribution of patients in the queues.
+    # rewards - a list with the reward acquired at each step in the simulation
+    # cured - total number of cured patients during the simulation
+    # time - total time waited by cured patients
+    # cured_types - cured patients by types    
 
     props, rewards, cured, time, cured_types, size = simulate(
             hospital,
@@ -238,9 +299,6 @@ def test_exp(
             checkBefore = earlyRewards,
             cap_penalty = capacity_penalty)
     
-    # Below we get reward results for a completely random action taking , i.e. epsilon = 1
-    # t_list_r, Q_optimal_weights_r, total_reward_per_episode_r = algorithm(hospital, feature, 0, 0, 1, number_episodes, number_steps)
-    
     
     # A plot that shows the episodic reward evolution during the learning phase
     # this is also informative of how fast the algorithm is learning
@@ -251,47 +309,10 @@ def test_exp(
                       naive_rewards)
     
     
-    # Extra information to be printed for the first figure
+    # Extra information to be printed for each simulation
     print_extra_info(rewards, cured, number_steps, cured_types, sum(map(sum, time)), title1)
     
     return total_reward_per_episode, rewards, props, cured, time, cured_types, size
-    
-def feature_experiment(num_exp,
-                       featurisation,
-                       rew_graph = False,
-                       naive_rew = None,
-                       tit1 = "", 
-                       tit2 = ""):
-
-    
-    for experiment in range(num_exp):
-    
-        props, rewards, c, t, cr, size = test_exp(algorithm = sarsa,
-                                                  capacity_hospital = capacity,
-                                                  number_steps = number_of_steps,
-                                                  number_episodes = number_of_episodes,
-                                                  p_arr_prob = p_arr_prob,
-                                                  doctors = doctors,
-                                                  feature = featurisation,
-                                                  rand_rewards = None,
-                                                  gamma = 0.9,
-                                                  alpha = None,
-                                                  epsilon = 0.1,
-                                                  title1 = tit1,
-                                                  title2 = tit2,
-                                                  earlyRewards = True,
-                                                  capacity_penalty = False,
-                                                  reward_evolution = rew_graph,
-                                                  naive_rewards = naive_rew) 
-        
-    
-        
-        exp_rewards.append(sum(rewards))
-        
-        misallocations = misalloc(props)
-        misalloc_list.append(misallocations)
-        
-    rewards_per_ep = rewards_per_ep / num_exp  
     
 
 if __name__ == "__main__":
