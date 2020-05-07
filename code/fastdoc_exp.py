@@ -16,9 +16,11 @@ You can run this file as is:
 which will generate data and plot it.
 Depending on the training parameters (number_episodes, number_steps),
 this may take time.
+
+
 If all you care about is seeing the data used in the report (or any previously generated data),
 you can pass a file as an argument:
-``` python3 fastdoc_exp.py exp2/data.npz ```
+``` python3 fastdoc_exp.py data.npz ```
 This will load the data contained in data.npz and plot it instead of generating new data.
 
 TODO:
@@ -32,7 +34,7 @@ p_array = np.linspace(0.1, 0.9, 5)
 feature = feature_12  # One-hot
 capacity_hospital = 500
 number_steps = 100
-number_episodes = 30
+number_episodes = 50
 number_tries = 5
 algorithm = sarsa
 
@@ -82,6 +84,9 @@ def generate(p_array, number_tries):
         Doctor(3, p_fast),
     ]
 
+    print("Number of episodes per training period:", number_episodes)
+    print("Number of steps per episode:", number_steps)
+    print("Number of tries per set of model parameters:", number_tries)
     ##############################################
 
     for j, p in enumerate(p_array):
@@ -115,19 +120,20 @@ def generate(p_array, number_tries):
             queue3type3[i, j] = props[3, 3]
             time3[i, j] = np.mean(time_array[3]) if time_array[3] else 0
 
-    # Save to file for further analysis (deactivated)
-    # np.savez(
-    #     os.path.dirname(os.path.realpath(__file__))
-    #     + "/exp2/exp2--"
-    #     + str(number_episodes)
-    #     + "episodes"
-    #     + str(number_steps)
-    #     + "steps"
-    #     + datetime.now().strftime("%H-%M-%S"),
-    #     queue3,
-    #     queue3type3,
-    #     time3,
-    # )
+    # Save to file for further analysis
+    # Comment this out if you don't want this behaviour
+    np.savez(
+        os.path.dirname(os.path.realpath(__file__))
+        + "/exp2--"
+        + str(number_episodes)
+        + "episodes"
+        + str(number_steps)
+        + "steps"
+        + datetime.now().strftime("%H-%M-%S"),
+        queue3,
+        queue3type3,
+        time3,
+    )
 
     return queue3, queue3type3, time3
 

@@ -6,12 +6,33 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
+""" 
+You can run this file as is:
+``` python3 rewards_exp.py ```
+which will generate data and plot it.
+Depending on the training parameters (number_episodes, number_steps),
+this may take time.
 
+If all you care about is seeing the data used in the report (or any previously generated data),
+you can pass a file as an argument:
+``` python3 rewards_exp.py data.npz ```
+This will load the data contained in data.npz and plot it instead of generating new data.
+
+TODO:
+    Group data arrays into multidimensional array
+    Allow several files as input (plot data in each of them)
+"""
 """
 Bar plot code (including `autolabel` function) obtained from:https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/barchart.html#sphx-glr-gallery-lines-bars-and-markers-barchart-py
 """
 
 conditions = [(True, True), (True, False), (False, True), (False, False)]
+
+feature = feature_12  # One-hot
+capacity_hospital = 500
+number_steps = 100
+number_episodes = 130
+number_tries = 4
 
 
 def main(number_tries=5, number_episodes=100, number_steps=100):
@@ -34,6 +55,10 @@ def generate(n_iter, number_steps, number_episodes):
     arraySarsa_time = np.empty([n_iter, 4])
     arrayQL_time = np.empty([n_iter, 4])
 
+    print("Number of episodes per training period:", number_episodes)
+    print("Number of steps per episode:", number_steps)
+    print("Number of tries per set of model parameters:", number_tries)
+
     for i in range(0, n_iter):
         for j, x in enumerate(conditions):
             (arraySarsa_misalloc[i, j], arraySarsa_time[i, j]) = test_exp(
@@ -43,21 +68,21 @@ def generate(n_iter, number_steps, number_episodes):
                 ql, *x, number_episodes=number_episodes, number_steps=number_steps
             )
 
-    # Save to file for further analysis (deactivated)
-    # np.savez(
-    #     os.path.dirname(os.path.realpath(__file__))
-    #     # Warning: this only works on *nix
-    #     + "/exp3/exp3_"
-    #     + str(number_episodes)
-    #     + "episodes_"
-    #     + str(number_steps)
-    #     + "steps_"
-    #     + datetime.now().strftime("%H-%M-%S"),
-    #     arraySarsa_misalloc,
-    #     arrayQL_misalloc,
-    #     arraySarsa_time,
-    #     arrayQL_time,
-    # )
+    # Save to file for further analysis
+    # Comment this out if unwanted
+    np.savez(
+        os.path.dirname(os.path.realpath(__file__))
+        + "/exp3_"
+        + str(number_episodes)
+        + "episodes_"
+        + str(number_steps)
+        + "steps_"
+        + datetime.now().strftime("%H-%M-%S"),
+        arraySarsa_misalloc,
+        arrayQL_misalloc,
+        arraySarsa_time,
+        arrayQL_time,
+    )
 
     return arraySarsa_misalloc, arrayQL_misalloc, arraySarsa_time, arrayQL_time
 
@@ -67,7 +92,7 @@ def test_exp(
 ):
     props, _, _, times, _, _ = test(
         algorithm,
-        capacity_hospital=40,
+        capacity_hospital=capacity_hospital,
         number_steps=number_steps,
         number_episodes=number_episodes,
         p_arr_prob=[1, 1, 1],
@@ -179,4 +204,4 @@ def autolabel(rects, ax, xpos="center"):
 
 
 if __name__ == "__main__":
-    main(number_tries=2, number_episodes=80, number_steps=100)
+    main(number_tries, number_episodes, number_steps)
