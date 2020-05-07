@@ -836,6 +836,7 @@ def test(
     cured       - the number of patients seen by a doctor
     time        - total time waited by treated patients
     cured_types - dict with treated patients by types
+    size        - how many patients were in the hospital at each timestep
     """
 
     # an instance of the Hospital object (defined in hospital.py)
