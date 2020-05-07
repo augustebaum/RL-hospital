@@ -4,7 +4,7 @@ Simulate a hospital and explore different reinforcement learning algorithms to o
 
 ## Files
 - `hospital.py` defines the `Hospital` class along with the methods necessary to simulate the passage of time in a hospital instance (including the reward system necessary for learning a policy: see the `next_step` function).
-- `learning.py` defines all methods pertaining to learning a policy: featurisations, learning algorithms and visualisation of policies. This also contains the `test` function trains and subsequently tests a learner, and returns relevant information about the test (where patients were allocated, how many were cured, how long they waited)
+- `learning.py` defines all methods pertaining to learning a policy: featurisations, learning algorithms and visualisation of policies. This also contains the `test` function which trains and subsequently tests a learner, and returns relevant information about the test (where patients were allocated, how many were cured, how long they waited)
 - `feat_exp.py` generates (or reads pre-generated) and plots data for experiment 1 of the report, where several featurisations are compared.
 - `fastdoc_exp.py` generates (or reads pre-generated) and plots data for experiment 2 of the report, where we study the behaviour of the agent. 
 - `rewards_exp.py` generates (or reads pre-generated) and plots data for experiment 3 of the report, where several algorithms and reward systems are compared. 
@@ -45,7 +45,7 @@ The queues contain `Patient` instances.
 
 ### Constraints
 The total number of patients in the hospital is bounded.
-When the hospital is full, any arriving patient is sent away.
+When the occupancy of the hospital is reached, the episode terminates. This can lead to a penalty or not, depending on the option chosen. Note that the episode also terminates after a set number of steps anyways.
 
 A patient with need *n* has to be seen by a doctor of type *n* or above.
 For example, a patient with need 0 can be treated by any doctor, but a patient with need 2 can't be treated by a doctor of type 0 or of type 1, and will be sent away *but only once the patient has gone through the queue*.
