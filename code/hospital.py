@@ -56,6 +56,7 @@ class Hospital(object):
         ----------
         action - the current action to be taken
         checkBefore - Whether misallocation is penalized at the beginning (default) or end of the queue
+        cap_penalty - Whether agent is penalized for reaching the capacity of the hospital
         """
         reward = 0
         s = self
