@@ -28,10 +28,10 @@ Bar plot code (including `autolabel` function) obtained from:https://matplotlib.
 
 conditions = [(True, True), (True, False), (False, True), (False, False)]
 
-feature = feature_12  # One-hot
-capacity_hospital = 500
+feature = feature_7  # One-hot
+capacity_hospital = 40
 number_steps = 100
-number_episodes = 130
+number_episodes = 80
 number_tries = 4
 
 
