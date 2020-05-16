@@ -33,7 +33,7 @@ p_array = np.linspace(0.1, 0.9, 5)
 
 feature = feature_12  # One-hot
 capacity_hospital = 500
-number_steps = 100
+number_steps = 500
 number_episodes = 50
 number_tries = 5
 algorithm = sarsa
